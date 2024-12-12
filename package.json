@@ -1,0 +1,11 @@
+{
+    "name": "double-aa-battery-game",
+    "version": "1.0.0",
+    "description": "A simple game using HTML5 canvas",
+    "main": "script.js",
+    "scripts": {
+        "start": "node script.js"
+    },
+    "author": "Asher",
+    "license": "MIT"
+}
