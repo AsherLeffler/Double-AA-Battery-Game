@@ -72,25 +72,41 @@ const mainPlayer = new Player(
 
 //! Define map
 // 1's = platforms, 0's = empty space
-const map = [
-  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-  [0, 0, 1, 0, 0, 1, 1, 0, 0, 0],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
-  [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-  [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-];
+let map = ranMap(10, 10);
+
+//* Function to generate a random map
+function ranMap(width, height) {
+  const map = [];
+  for (let i = 0; i < height; i++) {
+    map.push([]);
+    const goalNum = Math.floor(Math.random() * width);
+    for (let j = 0; j < width; j++) {
+      if (i === height - 1) map[i].push(1);
+      else if (i === 0 && j === goalNum) map[i].push(2);
+      else map[i].push(ranNum());
+    }
+  }
+  return map;
+}
+
+//* Function to generate a random number
+function ranNum() {
+  const f = 0.2; // The frequency of 1's
+  const num = Math.random();
+
+  if (num < f) return 1;
+  else return 0;
+}
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
 function drawMap() {
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
-      if (map[i][j] !== 0) {
+      if (map[i][j] === 1) {
         ctx.fillStyle = "rgb(48, 48, 48)";
+        ctx.fillRect(j * 40, i * 40, 40, 40);
+      } else if (map[i][j] === 2) {
+        ctx.fillStyle = "rgb(0, 255, 64)";
         ctx.fillRect(j * 40, i * 40, 40, 40);
       } else {
         ctx.fillStyle = "rgb(120, 120, 180)";
@@ -105,7 +121,7 @@ function collisionDetection() {
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
       const platform = map[i][j];
-      if (platform !== 0) {
+      if (platform === 1) {
         // Calculate the position of the platform and store width
         const platformX = j * 40;
         const platformY = i * 40;
@@ -141,10 +157,7 @@ function collisionDetection() {
             mainPlayer.xSpeed = 0;
           } else {
             // Vertical collision
-            if (
-              mainPlayer.yPos < platformY &&
-              mainPlayer.yPos + mainPlayer.h !== platformY
-            ) {
+            if (mainPlayer.yPos < platformY) {
               mainPlayer.yPos = platformY - mainPlayer.h; // Colliding from above
               mainPlayer.ySpeed = 0;
               canJump = true;
@@ -153,6 +166,17 @@ function collisionDetection() {
               mainPlayer.ySpeed = 0;
             }
           }
+        }
+      } else if (platform === 2) {
+        // Check if the player has reached the goal
+        if (
+          mainPlayer.xPos < j * 40 + 40 &&
+          mainPlayer.xPos + mainPlayer.w > j * 40 &&
+          mainPlayer.yPos < i * 40 + 40 &&
+          mainPlayer.yPos + mainPlayer.h > i * 40
+        ) {
+          // Generate a new map
+          map = ranMap(10, 10);
         }
       }
     }
