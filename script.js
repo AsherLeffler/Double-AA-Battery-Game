@@ -157,11 +157,11 @@ function collisionDetection() {
             mainPlayer.xSpeed = 0;
           } else {
             // Vertical collision
-            if (mainPlayer.yPos < platformY) {
+            if (mainPlayer.yPos < platformY && mainPlayer.ySpeed > 0) {
               mainPlayer.yPos = platformY - mainPlayer.h; // Colliding from above
               mainPlayer.ySpeed = 0;
               canJump = true;
-            } else {
+            } else if (mainPlayer.yPos > platformY) {
               mainPlayer.yPos = platformY + platformHeight; // Colliding from below
               mainPlayer.ySpeed = 0;
             }
@@ -183,10 +183,8 @@ function collisionDetection() {
   }
 }
 
-//* Main loop; Controls the game
-const gravity = 0.13;
-function mainLoop() {
-  drawMap();
+//* Function to update the game state
+function updateGame() {
   // Check if the player is on the ground
   if (mainPlayer.yPos + mainPlayer.h > canvas.height) {
     mainPlayer.setYPos(canvas.height - mainPlayer.h);
@@ -199,8 +197,14 @@ function mainLoop() {
   collisionDetection();
   // Update the player
   mainPlayer.update();
-  // Call the main loop again
-  requestAnimationFrame(mainLoop);
+}
+
+//* Function to render the game
+function renderGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+  drawMap();
+  mainPlayer.update();
+  requestAnimationFrame(renderGame);
 }
 
 //* Add event listeners to listen for arrow movements
@@ -208,15 +212,15 @@ document.addEventListener("keydown", (e) => {
   switch (e.key) {
     case "ArrowUp":
       if (canJump && mainPlayer.yPos > 0) {
-        mainPlayer.setYSpeed(-5);
+        mainPlayer.setYSpeed(-4);
         canJump = false;
       }
       break;
     case "ArrowLeft":
-      mainPlayer.setXSpeed(-4);
+      mainPlayer.setXSpeed(-2.2);
       break;
     case "ArrowRight":
-      mainPlayer.setXSpeed(4);
+      mainPlayer.setXSpeed(2.2);
       break;
   }
 });
@@ -236,4 +240,6 @@ document.addEventListener("keyup", (e) => {
 });
 
 //! Start main loop
-mainLoop();
+const gravity = 0.13;
+setInterval(updateGame, 1000 / 60); // Update game logic at 60 FPS
+requestAnimationFrame(renderGame); // Start rendering
