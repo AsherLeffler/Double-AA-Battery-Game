@@ -82,16 +82,18 @@ function ranMap(width, height) {
     const goalNum = Math.floor(Math.random() * width);
     for (let j = 0; j < width; j++) {
       if (i === height - 1) map[i].push(1);
+      else if (i === height - 2) map[i].push(0);
       else if (i === 0 && j === goalNum) map[i].push(2);
       else map[i].push(ranNum());
     }
   }
+  mainPlayer.yPos = canvas.height - mainPlayer.h - 40;
   return map;
 }
 
 //* Function to generate a random number
 function ranNum() {
-  const f = 0.2; // The frequency of 1's
+  const f = 0.2; // The frequency of platforms
   const num = Math.random();
 
   if (num < f) return 1;
@@ -208,6 +210,8 @@ function renderGame() {
 }
 
 //* Add event listeners to listen for arrow movements
+let canGenMap = true;
+
 document.addEventListener("keydown", (e) => {
   switch (e.key) {
     case "ArrowUp":
@@ -222,6 +226,12 @@ document.addEventListener("keydown", (e) => {
     case "ArrowRight":
       mainPlayer.setXSpeed(2.2);
       break;
+    case "Enter":
+      if (canGenMap) {
+        map = ranMap(10, 10);
+        canGenMap = false;
+      }
+      break;
   }
 });
 
@@ -235,6 +245,9 @@ document.addEventListener("keyup", (e) => {
       break;
     case "ArrowRight":
       mainPlayer.setXSpeed(0);
+      break;
+    case "Enter":
+      canGenMap = true;
       break;
   }
 });
