@@ -227,14 +227,14 @@ let intervalRight = null;
 document.addEventListener("keydown", (e) => {
   function jump() {
     if (canJump && mainPlayer.yPos > 0) {
-      mainPlayer.setYSpeed(-4);
+      mainPlayer.setYSpeed(mainPlayer.h * -0.2);
       canJump = false;
     }
   }
   function moveLeft() {
     if (intervalLeft === null) {
       intervalLeft = setInterval(() => {
-        if (mainPlayer.xPos > 0) mainPlayer.setXSpeed(-2.2);
+        if (mainPlayer.xPos > 0) mainPlayer.setXSpeed(mainPlayer.w * -0.11);
         else {
           mainPlayer.setXSpeed(0);
           clearInterval(intervalLeft);
@@ -246,7 +246,8 @@ document.addEventListener("keydown", (e) => {
     if (intervalRight === null) {
       intervalRight = setInterval(() => {
         if (mainPlayer.xPos + mainPlayer.w < canvas.width)
-          mainPlayer.setXSpeed(2.2);
+          mainPlayer.setXSpeed(mainPlayer.w * 0.11);
+        // 10, 1.1
         else {
           mainPlayer.setXSpeed(0);
           clearInterval(intervalRight);
@@ -325,6 +326,6 @@ document.addEventListener("keyup", (e) => {
 });
 
 //! Start main loop
-const gravity = 0.13;
+const gravity = mainPlayer.h * 0.0065;
 setInterval(updateGame, 1000 / 60); // Update game logic at 60 FPS
 requestAnimationFrame(renderGame); // Start rendering
