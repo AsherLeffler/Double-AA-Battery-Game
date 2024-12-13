@@ -2,8 +2,10 @@
 const canvas = document.getElementById("gameCanvas");
 
 //* Specify width and height of canvas
-canvas.width = 400;
-canvas.height = 400;
+const screenWidth = window.innerWidth - 40;
+const screenHeight = window.innerHeight - 40;
+canvas.width = screenWidth > screenHeight ? screenHeight : screenWidth;
+canvas.height = screenWidth > screenHeight ? screenHeight : screenWidth;
 
 //* Variable to check if the player can jump
 let canJump = true;
@@ -72,7 +74,7 @@ const mainPlayer = new Player(
 
 //! Define map
 // 1's = platforms, 0's = empty space
-let map = ranMap(10, 10);
+let map = ranMap(40, 40);
 
 //* Function to generate a random map
 function ranMap(width, height) {
@@ -87,13 +89,15 @@ function ranMap(width, height) {
       else map[i].push(ranNum());
     }
   }
-  mainPlayer.yPos = canvas.height - mainPlayer.h - 40;
+  mainPlayer.yPos = canvas.height - mainPlayer.h - canvas.height / map.length;
+  mainPlayer.w = canvas.width / map[0].length / 2;
+  mainPlayer.h = canvas.height / map.length / 2;
   return map;
 }
 
 //* Function to generate a random number
 function ranNum() {
-  const f = 0.2; // The frequency of platforms
+  const f = 0.25; // The frequency of platforms
   const num = Math.random();
 
   if (num < f) return 1;
@@ -102,17 +106,20 @@ function ranNum() {
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
 function drawMap() {
+  const blockWidth = canvas.width / map[0].length;
+  const blockHeight = canvas.height / map.length;
+
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
       if (map[i][j] === 1) {
         ctx.fillStyle = "rgb(48, 48, 48)";
-        ctx.fillRect(j * 40, i * 40, 40, 40);
+        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth, blockHeight);
       } else if (map[i][j] === 2) {
-        ctx.fillStyle = "rgb(0, 255, 64)";
-        ctx.fillRect(j * 40, i * 40, 40, 40);
+        ctx.fillStyle = "rgb(0, 243, 12)";
+        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth, blockHeight);
       } else {
-        ctx.fillStyle = "rgb(120, 120, 180)";
-        ctx.fillRect(j * 40, i * 40, 40, 40);
+        ctx.fillStyle = "rgb(203, 203, 255)";
+        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth, blockHeight);
       }
     }
   }
@@ -120,15 +127,18 @@ function drawMap() {
 
 //* Function to detect collision between player and platform and handle it
 function collisionDetection() {
+  const blockWidth = canvas.width / map[0].length;
+  const blockHeight = canvas.height / map.length;
+
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
       const platform = map[i][j];
       if (platform === 1) {
         // Calculate the position of the platform and store width
-        const platformX = j * 40;
-        const platformY = i * 40;
-        const platformWidth = 40;
-        const platformHeight = 40;
+        const platformX = j * blockWidth;
+        const platformY = i * blockHeight;
+        const platformWidth = blockWidth;
+        const platformHeight = blockHeight;
 
         // Check for collision
         if (
@@ -172,10 +182,10 @@ function collisionDetection() {
       } else if (platform === 2) {
         // Check if the player has reached the goal
         if (
-          mainPlayer.xPos < j * 40 + 40 &&
-          mainPlayer.xPos + mainPlayer.w > j * 40 &&
-          mainPlayer.yPos < i * 40 + 40 &&
-          mainPlayer.yPos + mainPlayer.h > i * 40
+          mainPlayer.xPos < j * blockWidth + blockWidth &&
+          mainPlayer.xPos + mainPlayer.w > j * blockWidth &&
+          mainPlayer.yPos < i * blockHeight + blockHeight &&
+          mainPlayer.yPos + mainPlayer.h > i * blockHeight
         ) {
           // Generate a new map
           map = ranMap(10, 10);
@@ -211,24 +221,69 @@ function renderGame() {
 
 //* Add event listeners to listen for arrow movements
 let canGenMap = true;
+let intervalLeft = null;
+let intervalRight = null;
 
 document.addEventListener("keydown", (e) => {
+  function jump() {
+    if (canJump && mainPlayer.yPos > 0) {
+      mainPlayer.setYSpeed(-4);
+      canJump = false;
+    }
+  }
+  function moveLeft() {
+    if (intervalLeft === null) {
+      intervalLeft = setInterval(() => {
+        if (mainPlayer.xPos > 0) mainPlayer.setXSpeed(-2.2);
+        else {
+          mainPlayer.setXSpeed(0);
+          clearInterval(intervalLeft);
+        }
+      }, 1000 / 60);
+    }
+  }
+  function moveRight() {
+    if (intervalRight === null) {
+      intervalRight = setInterval(() => {
+        if (mainPlayer.xPos + mainPlayer.w < canvas.width)
+          mainPlayer.setXSpeed(2.2);
+        else {
+          mainPlayer.setXSpeed(0);
+          clearInterval(intervalRight);
+        }
+      }, 1000 / 60);
+    }
+  }
+  console.log(e.key);
   switch (e.key) {
     case "ArrowUp":
-      if (canJump && mainPlayer.yPos > 0) {
-        mainPlayer.setYSpeed(-4);
-        canJump = false;
-      }
+      jump();
       break;
+
+    case "w":
+      jump();
+      break;
+
     case "ArrowLeft":
-      mainPlayer.setXSpeed(-2.2);
+      moveLeft();
       break;
+
+    case "a":
+      moveLeft();
+      break;
+
     case "ArrowRight":
-      mainPlayer.setXSpeed(2.2);
+      moveRight();
       break;
+
+    case "d":
+      moveRight();
+      break;
+
     case "Enter":
       if (canGenMap) {
-        map = ranMap(10, 10);
+        let size = Math.floor(Math.random() * 35 + 5);
+        map = ranMap(size, size);
         canGenMap = false;
       }
       break;
@@ -236,16 +291,33 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("keyup", (e) => {
+  function stopLeft() {
+    clearInterval(intervalLeft);
+    intervalLeft = null;
+    mainPlayer.setXSpeed(0);
+  }
+  function stopRight() {
+    clearInterval(intervalRight);
+    intervalRight = null;
+    mainPlayer.setXSpeed(0);
+  }
   switch (e.key) {
     case "ArrowLeft":
-      mainPlayer.setXSpeed(0);
-      if (mainPlayer.xPos < 0) {
-        mainPlayer.xPos = 0;
-      }
+      stopLeft();
       break;
+
+    case "a":
+      stopLeft();
+      break;
+
     case "ArrowRight":
-      mainPlayer.setXSpeed(0);
+      stopRight();
       break;
+
+    case "d":
+      stopRight();
+      break;
+
     case "Enter":
       canGenMap = true;
       break;
