@@ -2,8 +2,8 @@
 const canvas = document.getElementById("gameCanvas");
 
 //* Specify width and height of canvas
-const screenWidth = window.innerWidth - 40;
-const screenHeight = window.innerHeight - 40;
+const screenWidth = window.innerWidth - 20;
+const screenHeight = window.innerHeight - 20;
 canvas.width = screenWidth > screenHeight ? screenHeight : screenWidth;
 canvas.height = screenWidth > screenHeight ? screenHeight : screenWidth;
 
@@ -74,7 +74,8 @@ const mainPlayer = new Player(
 
 //! Define map
 // 1's = platforms, 0's = empty space
-let map = ranMap(40, 40);
+const s = Math.floor(Math.random() * 22 + 8);
+let map = ranMap(s, s);
 
 //* Function to generate a random map
 function ranMap(width, height) {
@@ -92,6 +93,8 @@ function ranMap(width, height) {
   mainPlayer.yPos = canvas.height - mainPlayer.h - canvas.height / map.length;
   mainPlayer.w = canvas.width / map[0].length / 2;
   mainPlayer.h = canvas.height / map.length / 2;
+  mainPlayer.xSpeed = 0;
+  mainPlayer.ySpeed = 0;
   return map;
 }
 
@@ -113,13 +116,13 @@ function drawMap() {
     for (let j = 0; j < map[i].length; j++) {
       if (map[i][j] === 1) {
         ctx.fillStyle = "rgb(48, 48, 48)";
-        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth, blockHeight);
+        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth + 1, blockHeight + 1);
       } else if (map[i][j] === 2) {
         ctx.fillStyle = "rgb(0, 243, 12)";
-        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth, blockHeight);
+        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth + 1, blockHeight + 1);
       } else {
         ctx.fillStyle = "rgb(203, 203, 255)";
-        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth, blockHeight);
+        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth + 1, blockHeight + 1);
       }
     }
   }
@@ -188,7 +191,38 @@ function collisionDetection() {
           mainPlayer.yPos + mainPlayer.h > i * blockHeight
         ) {
           // Generate a new map
-          map = ranMap(10, 10);
+          const newSize = Math.floor(Math.random() * 22 + 8);
+          map = ranMap(newSize, newSize);
+        }
+      }
+    }
+  }
+}
+
+//* Function to check if the player is colliding with a block
+function checkBlockCollision() {
+  const blockWidth = canvas.width / map[0].length;
+  const blockHeight = canvas.height / map.length;
+  for (let i = 0; i < map.length; i++) {
+    for (let j = 0; j < map[i].length; j++) {
+      const platform = map[i][j];
+      if (platform === 1) {
+        // Calculate the position of the platform and store width
+        const platformX = j * blockWidth;
+        const platformY = i * blockHeight;
+        const platformWidth = blockWidth;
+        const platformHeight = blockHeight;
+
+        // Check for collision
+        if (
+          mainPlayer.xPos < platformX + platformWidth &&
+          mainPlayer.xPos + mainPlayer.w > platformX &&
+          mainPlayer.yPos < platformY + platformHeight &&
+          mainPlayer.yPos + mainPlayer.h > platformY
+        ) {
+          return true;
+        } else {
+          return false;
         }
       }
     }
@@ -197,6 +231,9 @@ function collisionDetection() {
 
 //* Function to update the game state
 function updateGame() {
+  //! gravity
+  const gravity = mainPlayer.w * 0.0065;
+
   // Check if the player is on the ground
   if (mainPlayer.yPos + mainPlayer.h > canvas.height) {
     mainPlayer.setYPos(canvas.height - mainPlayer.h);
@@ -227,7 +264,7 @@ let intervalRight = null;
 document.addEventListener("keydown", (e) => {
   function jump() {
     if (canJump && mainPlayer.yPos > 0) {
-      mainPlayer.setYSpeed(mainPlayer.h * -0.2);
+      mainPlayer.setYSpeed(mainPlayer.w * -0.2);
       canJump = false;
     }
   }
@@ -245,7 +282,10 @@ document.addEventListener("keydown", (e) => {
   function moveRight() {
     if (intervalRight === null) {
       intervalRight = setInterval(() => {
-        if (mainPlayer.xPos + mainPlayer.w < canvas.width)
+        if (
+          mainPlayer.xPos + mainPlayer.w < canvas.width &&
+          !checkBlockCollision()
+        )
           mainPlayer.setXSpeed(mainPlayer.w * 0.11);
         // 10, 1.1
         else {
@@ -255,7 +295,6 @@ document.addEventListener("keydown", (e) => {
       }, 1000 / 60);
     }
   }
-  console.log(e.key);
   switch (e.key) {
     case "ArrowUp":
       jump();
@@ -283,7 +322,7 @@ document.addEventListener("keydown", (e) => {
 
     case "Enter":
       if (canGenMap) {
-        let size = Math.floor(Math.random() * 35 + 5);
+        let size = Math.floor(Math.random() * 22 + 8);
         map = ranMap(size, size);
         canGenMap = false;
       }
@@ -326,6 +365,5 @@ document.addEventListener("keyup", (e) => {
 });
 
 //! Start main loop
-const gravity = mainPlayer.h * 0.0065;
 setInterval(updateGame, 1000 / 60); // Update game logic at 60 FPS
 requestAnimationFrame(renderGame); // Start rendering
