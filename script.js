@@ -10,6 +10,9 @@ canvas.height = screenWidth > screenHeight ? screenHeight : screenWidth;
 //* Variable to check if the player can jump
 let canJump = true;
 
+//* Variable to store the score
+let score = 0;
+
 //* Start working with canvas
 const ctx = canvas.getContext("2d");
 //* color of canvas
@@ -74,7 +77,7 @@ const mainPlayer = new Player(
 
 //! Define map
 // 1's = platforms, 0's = empty space
-const s = Math.floor(Math.random() * 22 + 8);
+const s = Math.floor(Math.random() * 5 + 5);
 let map = ranMap(s, s);
 
 //* Function to generate a random map
@@ -82,15 +85,42 @@ function ranMap(width, height) {
   const map = [];
   for (let i = 0; i < height; i++) {
     map.push([]);
-    const goalNum = Math.floor(Math.random() * width);
+    const goalNum = Math.floor(Math.random() * width); // Randomly place the '2' in the top row
     for (let j = 0; j < width; j++) {
-      if (i === height - 1) map[i].push(1);
-      else if (i === height - 2) map[i].push(0);
-      else if (i === 0 && j === goalNum) map[i].push(2);
-      else map[i].push(ranNum());
+      if (i === 0 && j === goalNum) {
+        // Top row: place the goal (2)
+        map[i].push(2);
+      } else if (i === height - 1) {
+        // Bottom row: place (1)
+        map[i].push(1);
+      } else if (i === height - 2) {
+        // Second-to-last row: place (0)
+        map[i].push(0);
+      } else if (i === 0) {
+        map[i].push(0);
+      } else {
+        // Check for adjacency to a 2
+        if (
+          (i > 0 && map[i - 1][j] === 2) ||
+          (j > 0 && map[i][j - 1] === 2) ||
+          (j < width - 1 && map[i][j + 1] === 2) ||
+          (i > 0 && j > 0 && map[i - 1][j - 1] === 2) ||
+          (i > 0 && j < width - 1 && map[i - 1][j + 1] === 2)
+        ) {
+          // Adjacent to a 2: must be 0
+          map[i].push(0);
+        } else {
+          // Not adjacent to a 2: use ranNum()
+          map[i].push(ranNum());
+        }
+      }
     }
   }
-  mainPlayer.yPos = canvas.height - mainPlayer.h - canvas.height / map.length;
+  mainPlayer.yPos =
+    canvas.height -
+    mainPlayer.h -
+    canvas.height / map.length -
+    mainPlayer.h / 2;
   mainPlayer.w = canvas.width / map[0].length / 2;
   mainPlayer.h = canvas.height / map.length / 2;
   mainPlayer.xSpeed = 0;
@@ -116,16 +146,36 @@ function drawMap() {
     for (let j = 0; j < map[i].length; j++) {
       if (map[i][j] === 1) {
         ctx.fillStyle = "rgb(48, 48, 48)";
-        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth + 1, blockHeight + 1);
+        ctx.fillRect(
+          j * blockWidth,
+          i * blockHeight,
+          blockWidth + 1,
+          blockHeight + 1
+        );
       } else if (map[i][j] === 2) {
         ctx.fillStyle = "rgb(0, 243, 12)";
-        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth + 1, blockHeight + 1);
+        ctx.fillRect(
+          j * blockWidth,
+          i * blockHeight,
+          blockWidth + 1,
+          blockHeight + 1
+        );
       } else {
         ctx.fillStyle = "rgb(203, 203, 255)";
-        ctx.fillRect(j * blockWidth, i * blockHeight, blockWidth + 1, blockHeight + 1);
+        ctx.fillRect(
+          j * blockWidth,
+          i * blockHeight,
+          blockWidth + 1,
+          blockHeight + 1
+        );
       }
     }
   }
+  // Draw the score counter
+  ctx.fillStyle = "white";
+  ctx.font = "20px Trebuchet MS";
+  ctx.textAlign = "center";
+  ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height - 10);
 }
 
 //* Function to detect collision between player and platform and handle it
@@ -172,7 +222,7 @@ function collisionDetection() {
             mainPlayer.xSpeed = 0;
           } else {
             // Vertical collision
-            if (mainPlayer.yPos < platformY && mainPlayer.ySpeed > 0) {
+            if (mainPlayer.yPos < platformY && mainPlayer.ySpeed >= 0) {
               mainPlayer.yPos = platformY - mainPlayer.h; // Colliding from above
               mainPlayer.ySpeed = 0;
               canJump = true;
@@ -191,8 +241,26 @@ function collisionDetection() {
           mainPlayer.yPos + mainPlayer.h > i * blockHeight
         ) {
           // Generate a new map
-          const newSize = Math.floor(Math.random() * 22 + 8);
-          map = ranMap(newSize, newSize);
+          score++;
+          const audio = new Audio("/point.wav");
+          audio.volume = 0.2; // Set volume to 50%
+          audio.play();
+          if (score >= 0 && score < 5) {
+            const newSize = Math.floor(Math.random() * 5 + 5);
+            map = ranMap(newSize, newSize);
+          } else if (score >= 5 && score < 10) {
+            const newSize = Math.floor(Math.random() * 7 + 8);
+            map = ranMap(newSize, newSize);
+          } else if (score >= 10 && score < 15) {
+            const newSize = Math.floor(Math.random() * 15 + 15);
+            map = ranMap(newSize, newSize);
+          } else if (score >= 15 && score < 20) {
+            const newSize = Math.floor(Math.random() * 20 + 30);
+            map = ranMap(newSize, newSize);
+          } else {
+            const newSize = Math.floor(Math.random() * 15 + 55);
+            map = ranMap(newSize, newSize);
+          }
         }
       }
     }
@@ -214,16 +282,12 @@ function checkBlockCollision() {
         const platformHeight = blockHeight;
 
         // Check for collision
-        if (
+        return (
           mainPlayer.xPos < platformX + platformWidth &&
           mainPlayer.xPos + mainPlayer.w > platformX &&
           mainPlayer.yPos < platformY + platformHeight &&
           mainPlayer.yPos + mainPlayer.h > platformY
-        ) {
-          return true;
-        } else {
-          return false;
-        }
+        );
       }
     }
   }
@@ -264,6 +328,9 @@ let intervalRight = null;
 document.addEventListener("keydown", (e) => {
   function jump() {
     if (canJump && mainPlayer.yPos > 0) {
+      const audio = new Audio("/jumpSound.wav");
+      audio.volume = 0.2; // Set volume to 50%
+      audio.play();
       mainPlayer.setYSpeed(mainPlayer.w * -0.2);
       canJump = false;
     }
@@ -271,7 +338,8 @@ document.addEventListener("keydown", (e) => {
   function moveLeft() {
     if (intervalLeft === null) {
       intervalLeft = setInterval(() => {
-        if (mainPlayer.xPos > 0) mainPlayer.setXSpeed(mainPlayer.w * -0.11);
+        if (mainPlayer.xPos > 0 && !checkBlockCollision())
+          mainPlayer.setXSpeed(mainPlayer.w * -0.11);
         else {
           mainPlayer.setXSpeed(0);
           clearInterval(intervalLeft);
@@ -287,7 +355,6 @@ document.addEventListener("keydown", (e) => {
           !checkBlockCollision()
         )
           mainPlayer.setXSpeed(mainPlayer.w * 0.11);
-        // 10, 1.1
         else {
           mainPlayer.setXSpeed(0);
           clearInterval(intervalRight);
@@ -321,9 +388,27 @@ document.addEventListener("keydown", (e) => {
       break;
 
     case "Enter":
+      if (score > 0) score--;
       if (canGenMap) {
-        let size = Math.floor(Math.random() * 22 + 8);
-        map = ranMap(size, size);
+        const audio = new Audio("/loss.wav");
+        audio.volume = 0.2; // Set volume to 50%
+        audio.play();
+        if (score >= 0 && score < 5) {
+          const newSize = Math.floor(Math.random() * 5 + 5);
+          map = ranMap(newSize, newSize);
+        } else if (score >= 5 && score < 10) {
+          const newSize = Math.floor(Math.random() * 7 + 8);
+          map = ranMap(newSize, newSize);
+        } else if (score >= 10 && score < 15) {
+          const newSize = Math.floor(Math.random() * 15 + 15);
+          map = ranMap(newSize, newSize);
+        } else if (score >= 15 && score < 20) {
+          const newSize = Math.floor(Math.random() * 20 + 30);
+          map = ranMap(newSize, newSize);
+        } else {
+          const newSize = Math.floor(Math.random() * 15 + 55);
+          map = ranMap(newSize, newSize);
+        }
         canGenMap = false;
       }
       break;
