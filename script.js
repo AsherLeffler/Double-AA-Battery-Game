@@ -14,6 +14,28 @@ window.addEventListener("resize", () => {
   canvas.height = screenWidth > screenHeight ? screenHeight : screenWidth;
 });
 
+//* Create the main soundtrack
+window.addEventListener("DOMContentLoaded", () => {
+  const mainSoundtrack = new Audio("./soundTrack.mp3");
+  let soundTrackCanPlay = true;
+  mainSoundtrack.volume = 0.03; // Set volume to 10%
+  mainSoundtrack.loop = true;
+
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "ArrowUp" ||
+      e.key === "w" ||
+      e.key === "ArrowLeft" ||
+      e.key === "a" ||
+      e.key === "ArrowRight" ||
+      e.key === "d" && soundTrackCanPlay
+    ) {
+      mainSoundtrack.play();
+      soundTrackCanPlay = false;
+    }
+  });
+});
+
 //* Variable to check if the player can jump
 let canJump = true;
 
@@ -255,7 +277,7 @@ function collisionDetection() {
         ) {
           // Generate a new map
           score++;
-          const audio = new Audio("/point.wav");
+          const audio = new Audio("./point.wav");
           audio.volume = 0.2; // Set volume to 50%
           audio.play();
           if (score >= 0 && score < 5) {
@@ -315,8 +337,8 @@ let intervalRight = null;
 document.addEventListener("keydown", (e) => {
   function jump() {
     if (canJump && mainPlayer.yPos > 0) {
-      const audio = new Audio("/jumpSound.wav");
-      audio.volume = 0.2; // Set volume to 50%
+      const audio = new Audio("./jumpSound.wav");
+      audio.volume = 0.1; // Set volume to 50%
       audio.play();
       mainPlayer.setYSpeed(mainPlayer.w * -0.2);
       canJump = false;
@@ -373,7 +395,7 @@ document.addEventListener("keydown", (e) => {
     case "Enter":
       if (score > 0) score--;
       if (canGenMap) {
-        const audio = new Audio("/loss.wav");
+        const audio = new Audio("./loss.wav");
         audio.volume = 0.2; // Set volume to 50%
         audio.play();
         if (score >= 0 && score < 5) {
