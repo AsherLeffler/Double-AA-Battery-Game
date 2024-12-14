@@ -7,6 +7,13 @@ const screenHeight = window.innerHeight - 20;
 canvas.width = screenWidth > screenHeight ? screenHeight : screenWidth;
 canvas.height = screenWidth > screenHeight ? screenHeight : screenWidth;
 
+window.addEventListener("resize", () => {
+  const screenWidth = window.innerWidth - 20;
+  const screenHeight = window.innerHeight - 20;
+  canvas.width = screenWidth > screenHeight ? screenHeight : screenWidth;
+  canvas.height = screenWidth > screenHeight ? screenHeight : screenWidth;
+});
+
 //* Variable to check if the player can jump
 let canJump = true;
 
@@ -31,6 +38,9 @@ class Player {
 
   //* Draw the player
   update() {
+    this.w = canvas.width / map[0].length / 2;
+    this.h = canvas.height / map.length / 2;
+
     this.xPos += this.xSpeed;
     this.yPos += this.ySpeed;
     if (this.xPos < 0) {
@@ -41,6 +51,10 @@ class Player {
     }
     if (this.yPos < 0) {
       this.yPos = 0;
+      this.ySpeed = 0;
+    }
+    if (this.yPos + this.h - 1 > canvas.height - canvas.height / map.length) {
+      this.yPos = canvas.height - this.h - canvas.height / map.length;
       this.ySpeed = 0;
     }
     ctx.fillStyle = "red";
@@ -83,9 +97,9 @@ let map = ranMap(s, s);
 //* Function to generate a random map
 function ranMap(width, height) {
   const map = [];
+  const goalNum = Math.floor(Math.random() * width); // Randomly place the '2' in the top row
   for (let i = 0; i < height; i++) {
     map.push([]);
-    const goalNum = Math.floor(Math.random() * width); // Randomly place the '2' in the top row
     for (let j = 0; j < width; j++) {
       if (i === 0 && j === goalNum) {
         // Top row: place the goal (2)
@@ -96,16 +110,14 @@ function ranMap(width, height) {
       } else if (i === height - 2) {
         // Second-to-last row: place (0)
         map[i].push(0);
-      } else if (i === 0) {
-        map[i].push(0);
       } else {
         // Check for adjacency to a 2
         if (
-          (i > 0 && map[i - 1][j] === 2) ||
-          (j > 0 && map[i][j - 1] === 2) ||
-          (j < width - 1 && map[i][j + 1] === 2) ||
-          (i > 0 && j > 0 && map[i - 1][j - 1] === 2) ||
-          (i > 0 && j < width - 1 && map[i - 1][j + 1] === 2)
+          (i > 0 && i - 1 === 0 && j === goalNum) || // Above
+          (j > 0 && i === 0 && j - 1 === goalNum) || // Left
+          (j < width - 1 && i === 0 && j + 1 === goalNum) || // Right
+          (i > 0 && j > 0 && i - 1 === 0 && j - 1 === goalNum) || // Top-left
+          (i > 0 && j < width - 1 && i - 1 === 0 && j + 1 === goalNum) // Top-right
         ) {
           // Adjacent to a 2: must be 0
           map[i].push(0);
@@ -116,15 +128,15 @@ function ranMap(width, height) {
       }
     }
   }
+  mainPlayer.w = canvas.width / map[0].length / 2;
+  mainPlayer.h = canvas.height / map.length / 2;
+  mainPlayer.xSpeed = 0;
+  mainPlayer.ySpeed = 0;
   mainPlayer.yPos =
     canvas.height -
     mainPlayer.h -
     canvas.height / map.length -
     mainPlayer.h / 2;
-  mainPlayer.w = canvas.width / map[0].length / 2;
-  mainPlayer.h = canvas.height / map.length / 2;
-  mainPlayer.xSpeed = 0;
-  mainPlayer.ySpeed = 0;
   return map;
 }
 
@@ -173,7 +185,8 @@ function drawMap() {
   }
   // Draw the score counter
   ctx.fillStyle = "white";
-  ctx.font = "20px Trebuchet MS";
+  const fontSize = blockHeight > 60 ? 60 : blockHeight;
+  ctx.font = `${fontSize}px Trebuchet MS`;
   ctx.textAlign = "center";
   ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height - 10);
 }
@@ -222,13 +235,13 @@ function collisionDetection() {
             mainPlayer.xSpeed = 0;
           } else {
             // Vertical collision
-            if (mainPlayer.yPos < platformY && mainPlayer.ySpeed >= 0) {
+            if (mainPlayer.yPos < platformY && mainPlayer.ySpeed >= -0.1) {
               mainPlayer.yPos = platformY - mainPlayer.h; // Colliding from above
               mainPlayer.ySpeed = 0;
               canJump = true;
             } else if (mainPlayer.yPos > platformY) {
               mainPlayer.yPos = platformY + platformHeight; // Colliding from below
-              mainPlayer.ySpeed = 0;
+              mainPlayer.ySpeed = 0.1;
             }
           }
         }
@@ -249,7 +262,7 @@ function collisionDetection() {
             const newSize = Math.floor(Math.random() * 5 + 5);
             map = ranMap(newSize, newSize);
           } else if (score >= 5 && score < 10) {
-            const newSize = Math.floor(Math.random() * 7 + 8);
+            const newSize = Math.floor(Math.random() * 4 + 8);
             map = ranMap(newSize, newSize);
           } else if (score >= 10 && score < 15) {
             const newSize = Math.floor(Math.random() * 15 + 15);
@@ -262,32 +275,6 @@ function collisionDetection() {
             map = ranMap(newSize, newSize);
           }
         }
-      }
-    }
-  }
-}
-
-//* Function to check if the player is colliding with a block
-function checkBlockCollision() {
-  const blockWidth = canvas.width / map[0].length;
-  const blockHeight = canvas.height / map.length;
-  for (let i = 0; i < map.length; i++) {
-    for (let j = 0; j < map[i].length; j++) {
-      const platform = map[i][j];
-      if (platform === 1) {
-        // Calculate the position of the platform and store width
-        const platformX = j * blockWidth;
-        const platformY = i * blockHeight;
-        const platformWidth = blockWidth;
-        const platformHeight = blockHeight;
-
-        // Check for collision
-        return (
-          mainPlayer.xPos < platformX + platformWidth &&
-          mainPlayer.xPos + mainPlayer.w > platformX &&
-          mainPlayer.yPos < platformY + platformHeight &&
-          mainPlayer.yPos + mainPlayer.h > platformY
-        );
       }
     }
   }
@@ -338,8 +325,7 @@ document.addEventListener("keydown", (e) => {
   function moveLeft() {
     if (intervalLeft === null) {
       intervalLeft = setInterval(() => {
-        if (mainPlayer.xPos > 0 && !checkBlockCollision())
-          mainPlayer.setXSpeed(mainPlayer.w * -0.11);
+        if (mainPlayer.xPos > 0) mainPlayer.setXSpeed(mainPlayer.w * -0.11);
         else {
           mainPlayer.setXSpeed(0);
           clearInterval(intervalLeft);
@@ -350,10 +336,7 @@ document.addEventListener("keydown", (e) => {
   function moveRight() {
     if (intervalRight === null) {
       intervalRight = setInterval(() => {
-        if (
-          mainPlayer.xPos + mainPlayer.w < canvas.width &&
-          !checkBlockCollision()
-        )
+        if (mainPlayer.xPos + mainPlayer.w < canvas.width)
           mainPlayer.setXSpeed(mainPlayer.w * 0.11);
         else {
           mainPlayer.setXSpeed(0);
