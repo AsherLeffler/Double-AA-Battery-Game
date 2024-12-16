@@ -40,7 +40,7 @@ window.addEventListener("DOMContentLoaded", () => {
 let canJump = true;
 
 //* Variable to store the score
-let score = 0;
+let score = 14;
 
 //* Add timer to change the color of the temporary platforms
 let colorIndex = 0;
@@ -166,15 +166,15 @@ function ranMap(width, height) {
     canvas.height -
     mainPlayer.h -
     canvas.height / map.length -
-    mainPlayer.h / 2;
+    mainPlayer.h / 4;
   return map;
 }
 
 //* Function to generate a random number
 function ranNum(row, height) {
   const dF = dangerProb(); // The frequency of danger platforms.
-  const tF = 0.05; // The frequency of temporary platforms.
-  const sF = 0.3 - dF - tF; // The frequency of safe platforms; 0.25 is regular.
+  const tF = score < 15 ? 0.05 : 0.08; // The frequency of temporary platforms.
+  const sF = score < 15 ? 0.3 - dF - tF : 0.42 - dF - tF; // The frequency of safe platforms.
   const num = Math.random();
 
   if (num < sF) {
@@ -201,9 +201,9 @@ function dangerProb() {
     return 0.05;
   }
   if (score < 20) {
-    return 0.9;
+    return 0.09;
   }
-  return 1.2;
+  return 0.14;
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
@@ -287,7 +287,7 @@ function endFunction(lose) {
       } else if (score >= 15 && score < 20) {
         const newSize = Math.floor(Math.random() * 22 + 18);
         map = ranMap(newSize, newSize);
-  } else {
+      } else {
         const newSize = Math.floor(Math.random() * 15 + 55);
         map = ranMap(newSize, newSize);
       }
@@ -550,7 +550,7 @@ document.addEventListener("keydown", (e) => {
         } else if (score >= 15 && score < 20) {
           const newSize = Math.floor(Math.random() * 22 + 18);
           map = ranMap(newSize, newSize);
-      } else {
+        } else {
           const newSize = Math.floor(Math.random() * 15 + 55);
           map = ranMap(newSize, newSize);
         }
