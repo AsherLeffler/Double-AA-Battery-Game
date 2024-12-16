@@ -28,7 +28,7 @@ window.addEventListener("DOMContentLoaded", () => {
       e.key === "ArrowLeft" ||
       e.key === "a" ||
       e.key === "ArrowRight" ||
-      e.key === "d" && soundTrackCanPlay
+      (e.key === "d" && soundTrackCanPlay)
     ) {
       mainSoundtrack.play();
       soundTrackCanPlay = false;
@@ -164,7 +164,7 @@ function ranMap(width, height) {
 
 //* Function to generate a random number
 function ranNum() {
-  const f = 0.25; // The frequency of platforms
+  const f = 0.25; // The frequency of platforms; 0.25 is regular.
   const num = Math.random();
 
   if (num < f) return 1;
@@ -211,6 +211,36 @@ function drawMap() {
   ctx.font = `${fontSize}px Trebuchet MS`;
   ctx.textAlign = "center";
   ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height - 10);
+}
+
+//* Function to end the game
+function endFunction() {
+  mainPlayer.yPos = canvas.height - canvas.height / map.length - mainPlayer.h;
+  mainPlayer.ySpeed = 0;
+  mainPlayer.xSpeed = 0;
+  clearInterval(intervalLeft);
+  clearInterval(intervalRight);
+  const scoreInterval = setInterval(() => {
+    if (score > 0) {
+      score--;
+      if (score >= 0 && score < 5) {
+        const newSize = Math.floor(Math.random() * 5 + 5);
+        map = ranMap(newSize, newSize);
+      } else if (score >= 5 && score < 10) {
+        const newSize = Math.floor(Math.random() * 4 + 8);
+        map = ranMap(newSize, newSize);
+      } else if (score >= 10 && score < 15) {
+        const newSize = Math.floor(Math.random() * 15 + 15);
+        map = ranMap(newSize, newSize);
+      } else if (score >= 15 && score < 20) {
+        const newSize = Math.floor(Math.random() * 20 + 30);
+        map = ranMap(newSize, newSize);
+      } else {
+        const newSize = Math.floor(Math.random() * 15 + 55);
+        map = ranMap(newSize, newSize);
+      }
+    } else clearInterval(scoreInterval);
+  }, 180);
 }
 
 //* Function to detect collision between player and platform and handle it
@@ -292,6 +322,8 @@ function collisionDetection() {
           } else if (score >= 15 && score < 20) {
             const newSize = Math.floor(Math.random() * 20 + 30);
             map = ranMap(newSize, newSize);
+          } else if (score >= 40) {
+            confirm("Congrats! Want to restart?") ? endFunction() : null;
           } else {
             const newSize = Math.floor(Math.random() * 15 + 55);
             map = ranMap(newSize, newSize);
