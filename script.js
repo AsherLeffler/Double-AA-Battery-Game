@@ -40,7 +40,7 @@ window.addEventListener("DOMContentLoaded", () => {
 let canJump = true;
 
 //* Variable to store the score
-let score = 14;
+let score = 0;
 
 //* Add timer to change the color of the temporary platforms
 let colorIndex = 0;
