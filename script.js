@@ -42,6 +42,14 @@ let canJump = true;
 //* Variable to store the score
 let score = 0;
 
+//* Add timer to change the color of the temporary platforms
+let colorIndex = 0;
+const colors = ["rgba(48, 48, 48, 0.35)", "rgba(48, 48, 48, 0.8)"];
+
+setInterval(() => {
+  colorIndex = (colorIndex + 1) % colors.length;
+}, 3000);
+
 //* Start working with canvas
 const ctx = canvas.getContext("2d");
 //* color of canvas
@@ -145,7 +153,7 @@ function ranMap(width, height) {
           map[i].push(0);
         } else {
           // Not adjacent to a 2: use ranNum()
-          map[i].push(ranNum());
+          map[i].push(ranNum(i, height));
         }
       }
     }
@@ -163,12 +171,39 @@ function ranMap(width, height) {
 }
 
 //* Function to generate a random number
-function ranNum() {
-  const f = 0.25; // The frequency of platforms; 0.25 is regular.
+function ranNum(row, height) {
+  const dF = dangerProb(); // The frequency of danger platforms.
+  const tF = 0.05; // The frequency of temporary platforms.
+  const sF = 0.3 - dF - tF; // The frequency of safe platforms; 0.25 is regular.
   const num = Math.random();
 
-  if (num < f) return 1;
-  else return 0;
+  if (num < sF) {
+    return 1;
+  }
+  if (num < sF + dF && row < height - 4) {
+    return 3;
+  }
+  if (num < sF + dF + tF) {
+    return 4;
+  }
+  return 0;
+}
+
+//* Function to calculate the probability of danger platforms
+function dangerProb() {
+  if (score < 8) {
+    return 0;
+  }
+  if (score < 12) {
+    return 0.035;
+  }
+  if (score < 15) {
+    return 0.05;
+  }
+  if (score < 20) {
+    return 0.9;
+  }
+  return 1.2;
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
@@ -188,6 +223,22 @@ function drawMap() {
         );
       } else if (map[i][j] === 2) {
         ctx.fillStyle = "rgb(0, 243, 12)";
+        ctx.fillRect(
+          j * blockWidth,
+          i * blockHeight,
+          blockWidth + 1,
+          blockHeight + 1
+        );
+      } else if (map[i][j] === 3) {
+        ctx.fillStyle = `rgb(255, ${Math.floor(Math.random() * 50 + 70)}, 0)`;
+        ctx.fillRect(
+          j * blockWidth,
+          i * blockHeight,
+          blockWidth + 1,
+          blockHeight + 1
+        );
+      } else if (map[i][j] === 4) {
+        ctx.fillStyle = colors[colorIndex];
         ctx.fillRect(
           j * blockWidth,
           i * blockHeight,
@@ -214,14 +265,15 @@ function drawMap() {
 }
 
 //* Function to end the game
-function endFunction() {
+function endFunction(lose) {
   mainPlayer.yPos = canvas.height - canvas.height / map.length - mainPlayer.h;
   mainPlayer.ySpeed = 0;
   mainPlayer.xSpeed = 0;
   clearInterval(intervalLeft);
   clearInterval(intervalRight);
+  const prevScore = score;
   const scoreInterval = setInterval(() => {
-    if (score > 0) {
+    if (lose ? score > prevScore - 2 : score > 0) {
       score--;
       if (score >= 0 && score < 5) {
         const newSize = Math.floor(Math.random() * 5 + 5);
@@ -239,7 +291,9 @@ function endFunction() {
         const newSize = Math.floor(Math.random() * 15 + 55);
         map = ranMap(newSize, newSize);
       }
-    } else clearInterval(scoreInterval);
+    } else {
+      clearInterval(scoreInterval);
+    }
   }, 180);
 }
 
@@ -322,11 +376,65 @@ function collisionDetection() {
           } else if (score >= 15 && score < 20) {
             const newSize = Math.floor(Math.random() * 20 + 30);
             map = ranMap(newSize, newSize);
-          } else if (score >= 40) {
-            confirm("Congrats! Want to restart?") ? endFunction() : null;
+          } else if (score >= 30) {
+            confirm("Congrats! Want to restart?") ? endFunction(false) : null;
           } else {
             const newSize = Math.floor(Math.random() * 15 + 55);
             map = ranMap(newSize, newSize);
+          }
+        }
+      } else if (platform === 3) {
+        if (
+          mainPlayer.xPos < j * blockWidth + blockWidth &&
+          mainPlayer.xPos + mainPlayer.w > j * blockWidth &&
+          mainPlayer.yPos < i * blockHeight + blockHeight &&
+          mainPlayer.yPos + mainPlayer.h > i * blockHeight
+        ) {
+          endFunction(true);
+        }
+      } else if (platform === 4) {
+        if (
+          mainPlayer.xPos < j * blockWidth + blockWidth &&
+          mainPlayer.xPos + mainPlayer.w > j * blockWidth &&
+          mainPlayer.yPos < i * blockHeight + blockHeight &&
+          mainPlayer.yPos + mainPlayer.h > i * blockHeight &&
+          colorIndex === 1
+        ) {
+          const platformX = j * blockWidth;
+          const platformY = i * blockHeight;
+          const platformWidth = blockWidth;
+          const platformHeight = blockHeight;
+
+          // Calculate the overlap between player and platform
+          const overlapX =
+            Math.min(
+              mainPlayer.xPos + mainPlayer.w,
+              platformX + platformWidth
+            ) - Math.max(mainPlayer.xPos, platformX);
+          const overlapY =
+            Math.min(
+              mainPlayer.yPos + mainPlayer.h,
+              platformY + platformHeight
+            ) - Math.max(mainPlayer.yPos, platformY);
+
+          if (overlapX < overlapY) {
+            // Horizontal collision
+            if (mainPlayer.xPos < platformX) {
+              mainPlayer.xPos = platformX - mainPlayer.w; // Colliding from the left
+            } else {
+              mainPlayer.xPos = platformX + platformWidth; // Colliding from the right
+            }
+            mainPlayer.xSpeed = 0;
+          } else {
+            // Vertical collision
+            if (mainPlayer.yPos < platformY && mainPlayer.ySpeed >= -0.1) {
+              mainPlayer.yPos = platformY - mainPlayer.h; // Colliding from above
+              mainPlayer.ySpeed = 0;
+              canJump = true;
+            } else if (mainPlayer.yPos > platformY) {
+              mainPlayer.yPos = platformY + platformHeight; // Colliding from below
+              mainPlayer.ySpeed = 0.1;
+            }
           }
         }
       }
