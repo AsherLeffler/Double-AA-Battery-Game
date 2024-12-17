@@ -63,7 +63,7 @@ setInterval(() => {
 
 window.addEventListener("keydown", (e) => {
   if (e.key === "r") {
-    const response = confirm("Would you like to reset?");
+    const response = confirm("Would you like to reset? This will erase your score, best score, and wins");
     if (response) {
       score = 0;
       highScore = 0;
@@ -268,7 +268,7 @@ function getMapSize() {
       highScore = 0;
       localStorage.setItem("highScore", highScore);
       localStorage.setItem("wins", wins);
-    }, 5800);
+    }, 4000);
     endFunction(false);
   } else {
     const newSize = Math.floor(Math.random() * 5 + 35);
