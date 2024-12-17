@@ -38,6 +38,7 @@ window.addEventListener("resize", () => {
 
 //* Variable to check if the player can jump
 let canJump = true;
+let canMove = true;
 
 //* Variable to store the score
 let score = 0;
@@ -167,6 +168,10 @@ function ranMap(width, height) {
     mainPlayer.h -
     canvas.height / map.length -
     mainPlayer.h / 4;
+  canMove = false;
+  setTimeout(() => {
+    canMove = true;
+  }, 500);
   return map;
 }
 
@@ -174,7 +179,7 @@ function ranMap(width, height) {
 function ranNum(row, height) {
   const dF = dangerProb(); // The frequency of danger platforms.
   const tF = score < 15 ? 0.05 : 0.08; // The frequency of temporary platforms.
-  const sF = score < 15 ? 0.3 - dF - tF : 0.42 - dF - tF; // The frequency of safe platforms.
+  const sF = score < 15 ? 0.3 - dF - tF : 0.38 - dF - tF; // The frequency of safe platforms.
   const num = Math.random();
 
   if (num < sF) {
@@ -201,9 +206,9 @@ function dangerProb() {
     return 0.05;
   }
   if (score < 20) {
-    return 0.09;
+    return 0.07;
   }
-  return 0.14;
+  return 0.09;
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
@@ -487,7 +492,7 @@ let intervalRight = null;
 
 document.addEventListener("keydown", (e) => {
   function jump() {
-    if (canJump && mainPlayer.yPos > 0) {
+    if (canJump && mainPlayer.yPos > 0 && canMove) {
       const audio = new Audio("./jumpSound.wav");
       audio.volume = 0.1; // Set volume to 50%
       audio.play();
@@ -496,7 +501,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
   function moveLeft() {
-    if (intervalLeft === null) {
+    if (intervalLeft === null && canMove) {
       intervalLeft = setInterval(() => {
         if (mainPlayer.xPos > 0) mainPlayer.setXSpeed(mainPlayer.w * -0.11);
         else {
@@ -507,7 +512,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
   function moveRight() {
-    if (intervalRight === null) {
+    if (intervalRight === null && canMove) {
       intervalRight = setInterval(() => {
         if (mainPlayer.xPos + mainPlayer.w < canvas.width)
           mainPlayer.setXSpeed(mainPlayer.w * 0.11);
