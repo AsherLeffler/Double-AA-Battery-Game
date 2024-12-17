@@ -42,6 +42,7 @@ let canMove = true;
 
 //* Variable to store the score
 let score = 0;
+let highScore = 0;
 
 //* Add timer to change the color of the temporary platforms
 let colorIndex = 0;
@@ -171,7 +172,7 @@ function ranMap(width, height) {
   canMove = false;
   setTimeout(() => {
     canMove = true;
-  }, 500);
+  }, 200);
   return map;
 }
 
@@ -271,7 +272,8 @@ function drawMap() {
   const fontSize = blockHeight > 60 ? 60 : blockHeight;
   ctx.font = `${fontSize}px Trebuchet MS`;
   ctx.textAlign = "center";
-  ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height - 10);
+  ctx.fillText(`Score: ${score}`, canvas.width / 3, canvas.height - 10);
+  ctx.fillText(`Best: ${highScore}`, canvas.width / 3 * 2, canvas.height - 10);
 }
 
 //* Function to end the game
@@ -374,6 +376,7 @@ function collisionDetection() {
         ) {
           // Generate a new map
           score++;
+          if (score > highScore) highScore = score;
           const audio = new Audio("./point.wav");
           audio.volume = 0.15; // Set volume to 50%
           audio.play();
