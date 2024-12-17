@@ -41,9 +41,13 @@ let canJump = true;
 let canMove = true;
 let canWallJump = true;
 
-//* Variable to store the score
+//* Variables to store the score
 let score = 0;
 let highScore = localStorage.getItem("highScore") || 0;
+
+//! Impotant variables
+let movementMulti = 0.11;
+let gravityMulti = 0.0065;
 
 //* Add timer to change the color of the temporary platforms
 let colorIndex = 0;
@@ -66,6 +70,37 @@ window.addEventListener("keydown", (e) => {
       getMapSize();
     }
   }
+});
+
+
+// Press ctrl + q + b to access dev menu
+let keysPressed = {};
+
+window.addEventListener("keydown", (e) => {
+  keysPressed[e.key] = true;
+
+  if (keysPressed["Control"] && keysPressed["b"] && keysPressed["q"]) {
+    const response = prompt(
+      "Type 1 for set score, 2 for set gravity, 3 for set movement speed, 4 for reset gravity and movement speed"
+    );
+    keysPressed = {};
+    if (response === "1") {
+      score = parseInt(prompt("Enter the score"));
+      getMapSize();
+    } else if (response === "2") {
+      gravityMulti = parseFloat(prompt("Enter the gravity multiplier. 0.0065 is the default"));
+    } else if (response === "3") {
+      movementMulti = parseFloat(prompt("Enter the movement multiplier. 0.11 is the default"));
+    } else if (response === "4") {
+      alert("Success");
+      gravityMulti = 0.0065;
+      movementMulti = 0.11;
+    }
+  }
+});
+
+window.addEventListener("keyup", (e) => {
+  delete keysPressed[e.key];
 });
 
 //* Start working with canvas
@@ -327,13 +362,7 @@ function endFunction(lose) {
   clearInterval(intervalRight);
   const prevScore = score;
   const scoreInterval = setInterval(() => {
-    if (
-      lose
-        ? score > prevScore - 2
-        : score > 0 &&
-          mainPlayer.yPos >
-            canvas.height - (canvas.height / map.length) * 2 - mainPlayer.h
-    ) {
+    if (lose ? score > prevScore - 2 : score > 0) {
       score--;
       const loseAudio = new Audio("./loss.wav");
       loseAudio.volume = 0.2; // Set volume to 50%
@@ -424,10 +453,15 @@ function collisionDetection() {
           mainPlayer.xPos < j * blockWidth + blockWidth &&
           mainPlayer.xPos + mainPlayer.w > j * blockWidth &&
           mainPlayer.yPos < i * blockHeight + blockHeight &&
-          mainPlayer.yPos + mainPlayer.h > i * blockHeight
+          mainPlayer.yPos + mainPlayer.h > i * blockHeight &&
+          mainPlayer.yPos <
+            canvas.height - (canvas.height / map.length) * 2 - mainPlayer.h
         ) {
+          const platformX = j * blockWidth;
+          const platformY = i * blockHeight;
+
           const burnAudio = new Audio("./burn.wav");
-          burnAudio.volume = 0.1; // Set volume to 50%
+          burnAudio.volume = 0.1; // Set volume to 10%
           burnAudio.play();
           endFunction(true);
         }
@@ -525,7 +559,7 @@ function checkCollisionWithWall() {
 //* Function to update the game state
 function updateGame() {
   //! gravity
-  const gravity = mainPlayer.w * 0.0065;
+  const gravity = mainPlayer.w * gravityMulti; // should be multiplied by 0.0065
 
   // Check if the player is on the ground
   if (mainPlayer.yPos + mainPlayer.h > canvas.height) {
@@ -588,7 +622,8 @@ document.addEventListener("keydown", (e) => {
   function moveLeft() {
     if (intervalLeft === null && canMove) {
       intervalLeft = setInterval(() => {
-        if (mainPlayer.xPos > 0) mainPlayer.setXSpeed(mainPlayer.w * -0.11);
+        if (mainPlayer.xPos > 0)
+          mainPlayer.setXSpeed(mainPlayer.w * -movementMulti);
         else {
           mainPlayer.setXSpeed(0);
           clearInterval(intervalLeft);
@@ -600,7 +635,7 @@ document.addEventListener("keydown", (e) => {
     if (intervalRight === null && canMove) {
       intervalRight = setInterval(() => {
         if (mainPlayer.xPos + mainPlayer.w < canvas.width)
-          mainPlayer.setXSpeed(mainPlayer.w * 0.11);
+          mainPlayer.setXSpeed(mainPlayer.w * movementMulti);
         else {
           mainPlayer.setXSpeed(0);
           clearInterval(intervalRight);
