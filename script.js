@@ -47,7 +47,7 @@ let highScore = 0;
 
 //* Add timer to change the color of the temporary platforms
 let colorIndex = 0;
-const colors = ["rgba(48, 48, 48, 0.35)", "rgba(48, 48, 48, 0.8)"];
+const colors = ["rgb(149, 149, 183)", "rgb(78, 79, 89)"];
 
 setInterval(() => {
   colorIndex = (colorIndex + 1) % colors.length;
