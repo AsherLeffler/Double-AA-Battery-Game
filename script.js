@@ -39,6 +39,7 @@ window.addEventListener("resize", () => {
 //* Variable to check if the player can jump
 let canJump = true;
 let canMove = true;
+let canWallJump = true;
 
 //* Variable to store the score
 let score = 0;
@@ -203,13 +204,10 @@ function dangerProb() {
   if (score < 12) {
     return 0.035;
   }
-  if (score < 15) {
-    return 0.05;
-  }
   if (score < 20) {
-    return 0.07;
+    return 0.042;
   }
-  return 0.09;
+  return 0.05;
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
@@ -369,6 +367,7 @@ function collisionDetection() {
               mainPlayer.yPos = platformY - mainPlayer.h; // Colliding from above
               mainPlayer.ySpeed = 0;
               canJump = true;
+              canWallJump = true;
             } else if (mainPlayer.yPos > platformY) {
               mainPlayer.yPos = platformY + platformHeight; // Colliding from below
               mainPlayer.ySpeed = 0.1;
@@ -459,10 +458,51 @@ function collisionDetection() {
               mainPlayer.yPos = platformY - mainPlayer.h; // Colliding from above
               mainPlayer.ySpeed = 0;
               canJump = true;
+              canWallJump = true;
             } else if (mainPlayer.yPos > platformY) {
               mainPlayer.yPos = platformY + platformHeight; // Colliding from below
               mainPlayer.ySpeed = 0.1;
             }
+          }
+        }
+      }
+    }
+  }
+}
+
+//* Function to check if the player is colliding with a wall
+function checkCollisionWithWall() {
+  const blockWidth = canvas.width / map[0].length;
+  const blockHeight = canvas.height / map.length;
+
+  for (let i = 0; i < map.length; i++) {
+    for (let j = 0; j < map[i].length; j++) {
+      const platform = map[i][j];
+      const isSolidPlatform = platform === 4 && colorIndex === 1;
+      if (platform === 1 || isSolidPlatform) {
+        const platformX = j * blockWidth;
+        const platformY = i * blockHeight;
+        // Check for collision
+        if (
+          (mainPlayer.xPos === platformX + blockWidth ||
+            mainPlayer.xPos + mainPlayer.w === platformX ||
+            mainPlayer.xPos === platformX ||
+            mainPlayer.xPos + mainPlayer.w === platformX + blockWidth ||
+            mainPlayer.xPos === 0 ||
+            mainPlayer.xPos + mainPlayer.w === canvas.width) &&
+          mainPlayer.yPos < platformY + blockHeight &&
+          mainPlayer.yPos + mainPlayer.h > platformY
+        ) {
+          if (
+            mainPlayer.xPos === platformX + blockWidth ||
+            mainPlayer.xPos === 0
+          ) {
+            return "right";
+          } else if (
+            mainPlayer.xPos + mainPlayer.w === platformX ||
+            mainPlayer.xPos + mainPlayer.w === canvas.width
+          ) {
+            return "left";
           }
         }
       }
@@ -479,6 +519,7 @@ function updateGame() {
   if (mainPlayer.yPos + mainPlayer.h > canvas.height) {
     mainPlayer.setYPos(canvas.height - mainPlayer.h);
     canJump = true;
+    canWallJump = true;
     mainPlayer.setYSpeed(0);
   } else if (mainPlayer.yPos != canvas.height - mainPlayer.h) {
     mainPlayer.setYSpeed(mainPlayer.getYSpeed() + gravity); // Gravity
@@ -510,6 +551,26 @@ document.addEventListener("keydown", (e) => {
       audio.play();
       mainPlayer.setYSpeed(mainPlayer.w * -0.2);
       canJump = false;
+    } else if (
+      !canJump &&
+      canWallJump &&
+      canMove &&
+      (checkCollisionWithWall() === "left" ||
+        checkCollisionWithWall() === "right")
+    ) {
+      const audio = new Audio("./jumpSound.wav");
+      audio.volume = 0.1; // Set volume to 50%
+      audio.play();
+      mainPlayer.setYSpeed(mainPlayer.w * -0.15);
+      mainPlayer.setXSpeed(
+        checkCollisionWithWall() === "left"
+          ? (mainPlayer.w * -0.11) / 3
+          : (mainPlayer.w * 0.11) / 3
+      );
+      setTimeout(() => {
+        mainPlayer.setXSpeed(0);
+      }, 100);
+      canWallJump = false;
     }
   }
   function moveLeft() {
