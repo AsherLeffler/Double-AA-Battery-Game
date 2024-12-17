@@ -44,8 +44,9 @@ let canWallJump = true;
 //* Variables to store the score
 let score = 0;
 let highScore = localStorage.getItem("highScore") || 0;
+let wins = localStorage.getItem("wins") || 0;
 
-//! Impotant variables
+//! Important variables
 let movementMulti = 0.11;
 let gravityMulti = 0.0065;
 
@@ -72,7 +73,6 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-
 // Press ctrl + q + b to access dev menu
 let keysPressed = {};
 
@@ -88,9 +88,13 @@ window.addEventListener("keydown", (e) => {
       score = parseInt(prompt("Enter the score"));
       getMapSize();
     } else if (response === "2") {
-      gravityMulti = parseFloat(prompt("Enter the gravity multiplier. 0.0065 is the default"));
+      gravityMulti = parseFloat(
+        prompt("Enter the gravity multiplier. 0.0065 is the default")
+      );
     } else if (response === "3") {
-      movementMulti = parseFloat(prompt("Enter the movement multiplier. 0.11 is the default"));
+      movementMulti = parseFloat(
+        prompt("Enter the movement multiplier. 0.11 is the default")
+      );
     } else if (response === "4") {
       alert("Success");
       gravityMulti = 0.0065;
@@ -259,6 +263,10 @@ function getMapSize() {
     map = ranMap(newSize, newSize);
   } else if (score >= 30) {
     alert("Congrats! Have fun doing it again");
+    wins++;
+    highScore = 0;
+    localStorage.setItem("highScore", highScore);
+    localStorage.setItem("wins", wins);
     endFunction(false);
   } else {
     const newSize = Math.floor(Math.random() * 5 + 35);
@@ -337,12 +345,18 @@ function drawMap() {
   }
   // Draw the score counter
   ctx.fillStyle = "white";
-  const fontSize = blockHeight > 60 ? 60 : blockHeight;
+  const fontSize = blockHeight > 40 ? 40 : blockHeight;
   ctx.font = `${fontSize}px Trebuchet MS`;
   ctx.textAlign = "left";
   ctx.fillText(
     `Score: ${score}`,
     20,
+    canvas.height - canvas.height / map.length / 8
+  );
+  ctx.textAlign = "center";
+  ctx.fillText(
+    `Wins: ${wins}`,
+    canvas.width / 2,
     canvas.height - canvas.height / map.length / 8
   );
   ctx.textAlign = "right";
@@ -457,9 +471,6 @@ function collisionDetection() {
           mainPlayer.yPos <
             canvas.height - (canvas.height / map.length) * 2 - mainPlayer.h
         ) {
-          const platformX = j * blockWidth;
-          const platformY = i * blockHeight;
-
           const burnAudio = new Audio("./burn.wav");
           burnAudio.volume = 0.1; // Set volume to 10%
           burnAudio.play();
