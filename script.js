@@ -300,7 +300,7 @@ function endFunction(lose) {
         const newSize = Math.floor(Math.random() * 10 + 10);
         map = ranMap(newSize, newSize);
       } else if (score >= 15 && score < 20) {
-        const newSize = Math.floor(Math.random() * 22 + 18);
+        const newSize = Math.floor(Math.random() * 16 + 16);
         map = ranMap(newSize, newSize);
       } else {
         const newSize = Math.floor(Math.random() * 15 + 55);
@@ -390,7 +390,7 @@ function collisionDetection() {
             const newSize = Math.floor(Math.random() * 10 + 10);
             map = ranMap(newSize, newSize);
           } else if (score >= 15 && score < 20) {
-            const newSize = Math.floor(Math.random() * 22 + 18);
+            const newSize = Math.floor(Math.random() * 16 + 16);
             map = ranMap(newSize, newSize);
           } else if (score >= 30) {
             confirm("Congrats! Want to restart?") ? endFunction(false) : null;
@@ -567,7 +567,7 @@ document.addEventListener("keydown", (e) => {
           const newSize = Math.floor(Math.random() * 10 + 10);
           map = ranMap(newSize, newSize);
         } else if (score >= 15 && score < 20) {
-          const newSize = Math.floor(Math.random() * 22 + 18);
+          const newSize = Math.floor(Math.random() * 16 + 16);
           map = ranMap(newSize, newSize);
         } else {
           const newSize = Math.floor(Math.random() * 15 + 55);
