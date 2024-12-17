@@ -36,10 +36,11 @@ window.addEventListener("resize", () => {
 //   });
 // });
 
-//* Variable to check if the player can jump
+//* State variabless
 let canJump = true;
 let canMove = true;
 let canWallJump = true;
+let canDie = true;
 
 //* Variable to store the score
 let score = 0;
@@ -173,7 +174,8 @@ function ranMap(width, height) {
   canMove = false;
   setTimeout(() => {
     canMove = true;
-  }, 200);
+    if(!canDie) canDie = true;
+  }, 100);
   return map;
 }
 
@@ -292,26 +294,28 @@ function endFunction(lose) {
   clearInterval(intervalRight);
   const prevScore = score;
   const scoreInterval = setInterval(() => {
-    if (lose ? score > prevScore - 2 : score > 0) {
+    if (lose ? score > prevScore - 2 : score > 0 & canDie) {
       score--;
-      const loseAudio = new Audio("./loss.wav");
-      loseAudio.volume = 0.2; // Set volume to 50%
-      loseAudio.play();
       if (score >= 0 && score < 5) {
         const newSize = Math.floor(Math.random() * 5 + 5);
         map = ranMap(newSize, newSize);
+        canDie = false;
       } else if (score >= 5 && score < 10) {
         const newSize = Math.floor(Math.random() * 4 + 8);
         map = ranMap(newSize, newSize);
+        canDie = false;
       } else if (score >= 10 && score < 15) {
         const newSize = Math.floor(Math.random() * 10 + 10);
         map = ranMap(newSize, newSize);
+        canDie = false;
       } else if (score >= 15 && score < 20) {
         const newSize = Math.floor(Math.random() * 16 + 16);
         map = ranMap(newSize, newSize);
+        canDie = false;
       } else {
         const newSize = Math.floor(Math.random() * 15 + 55);
         map = ranMap(newSize, newSize);
+        canDie = false;
       }
     } else {
       clearInterval(scoreInterval);
