@@ -315,7 +315,13 @@ function endFunction(lose) {
   clearInterval(intervalRight);
   const prevScore = score;
   const scoreInterval = setInterval(() => {
-    if (lose ? score > prevScore - 2 : score > 0) {
+    if (
+      lose
+        ? score > prevScore - 2
+        : score > 0 &&
+          mainPlayer.yPos >
+            canvas.height - (canvas.height / map.length) * 2 - mainPlayer.h
+    ) {
       score--;
       const loseAudio = new Audio("./loss.wav");
       loseAudio.volume = 0.2; // Set volume to 50%
