@@ -39,9 +39,12 @@ setInterval(() => {
   if (score > 3) switchAudio.play();
 }, 3000);
 
+//* Add event listener to reset the game
 window.addEventListener("keydown", (e) => {
   if (e.key === "r") {
-    const response = confirm("Would you like to reset? This will erase your score, best score, and wins");
+    const response = confirm(
+      "Would you like to reset? This will erase your score, best score, and wins"
+    );
     if (response) {
       score = 0;
       highScore = 0;
@@ -51,9 +54,9 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-// Press ctrl + q + b to access dev menu
+//* Press ctrl + q + b to access dev menu
 let keysPressed = {};
-
+// Add event listener to check for key presses to activate the dev menu
 window.addEventListener("keydown", (e) => {
   keysPressed[e.key] = true;
 
@@ -190,6 +193,7 @@ function ranMap(width, height) {
       }
     }
   }
+  // Resets the player's position, size, and speed to be at the bottom of the canvas and proportional with the map
   mainPlayer.w = canvas.width / map[0].length / 2;
   mainPlayer.h = canvas.height / map.length / 2;
   mainPlayer.xSpeed = 0;
@@ -200,6 +204,7 @@ function ranMap(width, height) {
     canvas.height / map.length -
     mainPlayer.h / 4;
   canMove = false;
+  // Set a timeout to allow the player to move after the map is generated
   setTimeout(() => {
     canMove = true;
   }, 100);
@@ -213,14 +218,15 @@ function ranNum(row, height) {
   const sF = score < 15 ? 0.3 - dF - tF : 0.34 - dF - tF; // The frequency of safe platforms.
   const num = Math.random();
 
+  // Return the value of the platform based on the random number
   if (num < sF) {
-    return 1;
+    return 1; // Safe platform;
   }
   if (num < sF + dF && row < height - 4) {
-    return 3;
+    return 3; // Danger platform;
   }
   if (num < sF + dF + tF && score > 3) {
-    return 4;
+    return 4; // Temporary platform;
   }
   return 0;
 }
@@ -280,7 +286,7 @@ function drawMap() {
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
       if (map[i][j] === 1) {
-        ctx.fillStyle = "rgb(48, 48, 48)";
+        ctx.fillStyle = "rgb(48, 48, 48)"; // Color of safe platform
         ctx.fillRect(
           j * blockWidth,
           i * blockHeight,
@@ -288,8 +294,7 @@ function drawMap() {
           blockHeight + 1
         );
       } else if (map[i][j] === 2) {
-        // If platform collided with is 
-        ctx.fillStyle = "rgb(0, 243, 12)";
+        ctx.fillStyle = "rgb(0, 243, 12)"; // Color of goal platform
         ctx.fillRect(
           j * blockWidth,
           i * blockHeight,
@@ -297,7 +302,7 @@ function drawMap() {
           blockHeight + 1
         );
       } else if (map[i][j] === 3) {
-        ctx.fillStyle = `rgb(255, ${Math.floor(Math.random() * 50 + 70)}, 0)`;
+        ctx.fillStyle = `rgb(255, ${Math.floor(Math.random() * 50 + 70)}, 0)`; // Color of danger platform;
         ctx.fillRect(
           j * blockWidth,
           i * blockHeight,
@@ -305,7 +310,7 @@ function drawMap() {
           blockHeight + 1
         );
       } else if (map[i][j] === 4) {
-        ctx.fillStyle = colors[colorIndex];
+        ctx.fillStyle = colors[colorIndex]; // Color of temporary platform (changes every 3 seconds);
         ctx.fillRect(
           j * blockWidth,
           i * blockHeight,
@@ -315,23 +320,27 @@ function drawMap() {
       }
     }
   }
+
   // Draw the score text, wins text, and high score text
   ctx.fillStyle = "white";
   const fontSize = blockHeight > 40 ? 40 : blockHeight;
   ctx.font = `${fontSize}px Trebuchet MS`;
   ctx.textAlign = "left";
+  // Draw the current score text at the very left of the canvas and dynamically update the height from the bottom
   ctx.fillText(
     `Score: ${score}`,
     20,
     canvas.height - canvas.height / map.length / 8
   );
   ctx.textAlign = "center";
+  // Draw the total wins text at the center of the canvas and dynamically update the height from the bottom
   ctx.fillText(
     `Wins: ${wins}`,
     canvas.width / 2,
     canvas.height - canvas.height / map.length / 8
   );
   ctx.textAlign = "right";
+  // Draw the high score text at the very right of the canvas and dynamically update the height from the bottom
   ctx.fillText(
     `Best: ${highScore}`,
     canvas.width - 20,
