@@ -272,8 +272,8 @@ function drawMap() {
   const fontSize = blockHeight > 60 ? 60 : blockHeight;
   ctx.font = `${fontSize}px Trebuchet MS`;
   ctx.textAlign = "center";
-  ctx.fillText(`Score: ${score}`, canvas.width / 3, canvas.height - 10);
-  ctx.fillText(`Best: ${highScore}`, canvas.width / 3 * 2, canvas.height - 10);
+  ctx.fillText(`Score: ${score}`, canvas.width / 3 - 20, canvas.height - 10);
+  ctx.fillText(`Best: ${highScore}`, canvas.width / 3 * 2 + 20, canvas.height - 10);
 }
 
 //* Function to end the game
