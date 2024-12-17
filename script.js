@@ -15,26 +15,26 @@ window.addEventListener("resize", () => {
 });
 
 //* Create the main soundtrack
-window.addEventListener("DOMContentLoaded", () => {
-  const mainSoundtrack = new Audio("./soundTrack.mp3");
-  let soundTrackCanPlay = true;
-  mainSoundtrack.volume = 0.03; // Set volume to 10%
-  mainSoundtrack.loop = true;
+// window.addEventListener("DOMContentLoaded", () => {
+//   const mainSoundtrack = new Audio("./soundTrack.mp3");
+//   let soundTrackCanPlay = true;
+//   mainSoundtrack.volume = 0.03; // Set volume to 10%
+//   mainSoundtrack.loop = true;
 
-  document.addEventListener("keydown", (e) => {
-    if (
-      e.key === "ArrowUp" ||
-      e.key === "w" ||
-      e.key === "ArrowLeft" ||
-      e.key === "a" ||
-      e.key === "ArrowRight" ||
-      (e.key === "d" && soundTrackCanPlay)
-    ) {
-      mainSoundtrack.play();
-      soundTrackCanPlay = false;
-    }
-  });
-});
+//   document.addEventListener("keydown", (e) => {
+//     if (
+//       e.key === "ArrowUp" ||
+//       e.key === "w" ||
+//       e.key === "ArrowLeft" ||
+//       e.key === "a" ||
+//       e.key === "ArrowRight" ||
+//       (e.key === "d" && soundTrackCanPlay)
+//     ) {
+//       mainSoundtrack.play();
+//       soundTrackCanPlay = false;
+//     }
+//   });
+// });
 
 //* Variable to check if the player can jump
 let canJump = true;
@@ -55,9 +55,6 @@ setInterval(() => {
 
 //* Start working with canvas
 const ctx = canvas.getContext("2d");
-//* color of canvas
-ctx.fillStyle = "rgb(120, 120, 120)";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 class Player {
   constructor(w, h, xSpeed, ySpeed, xPos, yPos) {
@@ -211,6 +208,10 @@ function dangerProb() {
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
 function drawMap() {
+  //* color of canvas
+  ctx.fillStyle = "rgb(203, 203, 255)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   const blockWidth = canvas.width / map[0].length;
   const blockHeight = canvas.height / map.length;
 
@@ -248,15 +249,16 @@ function drawMap() {
           blockWidth + 1,
           blockHeight + 1
         );
-      } else {
-        ctx.fillStyle = "rgb(203, 203, 255)";
-        ctx.fillRect(
-          j * blockWidth,
-          i * blockHeight,
-          blockWidth + 1,
-          blockHeight + 1
-        );
       }
+      // else {
+      //   ctx.fillStyle = "rgb(203, 203, 255)";
+      //   ctx.fillRect(
+      //     j * blockWidth,
+      //     i * blockHeight,
+      //     blockWidth + 1,
+      //     blockHeight + 1
+      //   );
+      // }
     }
   }
   // Draw the score counter
