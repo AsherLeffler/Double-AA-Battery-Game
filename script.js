@@ -43,18 +43,30 @@ let canWallJump = true;
 
 //* Variable to store the score
 let score = 0;
-let highScore = 0;
+let highScore = localStorage.getItem("highScore") || 0;
 
 //* Add timer to change the color of the temporary platforms
 let colorIndex = 0;
-const colors = ["rgb(149, 149, 183)", "rgb(78, 79, 89)"];
+const colors = ["rgb(149, 149, 183)", "rgb(65, 66, 76)"];
 
 setInterval(() => {
   colorIndex = (colorIndex + 1) % colors.length;
   const switchAudio = new Audio("./switch.wav");
   switchAudio.volume = 0.3; // Set volume to 50%
-  switchAudio.play();
+  if (score > 3) switchAudio.play();
 }, 3000);
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "r") {
+    const response = confirm("Would you like to reset?");
+    if (response) {
+      score = 0;
+      highScore = 0;
+      localStorage.setItem("highScore", highScore);
+      getMapSize();
+    }
+  }
+});
 
 //* Start working with canvas
 const ctx = canvas.getContext("2d");
@@ -190,7 +202,7 @@ function ranNum(row, height) {
   if (num < sF + dF && row < height - 4) {
     return 3;
   }
-  if (num < sF + dF + tF && score > 4) {
+  if (num < sF + dF + tF && score > 3) {
     return 4;
   }
   return 0;
@@ -398,7 +410,10 @@ function collisionDetection() {
         ) {
           // Generate a new map
           score++;
-          if (score > highScore) highScore = score;
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("highScore", highScore);
+          }
           const audio = new Audio("./point.wav");
           audio.volume = 0.15; // Set volume to 50%
           audio.play();
