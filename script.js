@@ -49,7 +49,7 @@ const colors = ["rgba(48, 48, 48, 0.35)", "rgba(48, 48, 48, 0.8)"];
 setInterval(() => {
   colorIndex = (colorIndex + 1) % colors.length;
   const switchAudio = new Audio("./switch.wav");
-  switchAudio.volume = 0.1; // Set volume to 50%
+  switchAudio.volume = 0.3; // Set volume to 50%
   switchAudio.play();
 }, 3000);
 
