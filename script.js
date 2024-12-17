@@ -196,18 +196,41 @@ function ranNum(row, height) {
   return 0;
 }
 
+//* Function to get the size of the map based on the score
+function getMapSize() {
+  if (score >= 0 && score < 5) {
+    const newSize = Math.floor(Math.random() * 5 + 5);
+    map = ranMap(newSize, newSize);
+  } else if (score >= 5 && score < 10) {
+    const newSize = Math.floor(Math.random() * 4 + 8);
+    map = ranMap(newSize, newSize);
+  } else if (score >= 10 && score < 15) {
+    const newSize = Math.floor(Math.random() * 10 + 10);
+    map = ranMap(newSize, newSize);
+  } else if (score >= 15 && score < 20) {
+    const newSize = Math.floor(Math.random() * 16 + 16);
+    map = ranMap(newSize, newSize);
+  } else if (score >= 30) {
+    alert("Congrats! Have fun doing it again");
+    endFunction(false);
+  } else {
+    const newSize = Math.floor(Math.random() * 5 + 35);
+    map = ranMap(newSize, newSize);
+  }
+}
+
 //* Function to calculate the probability of danger platforms
 function dangerProb() {
   if (score < 8) {
     return 0;
   }
   if (score < 12) {
-    return 0.035;
+    return 0.028;
   }
   if (score < 20) {
-    return 0.042;
+    return 0.032;
   }
-  return 0.05;
+  return 0.033;
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
@@ -297,22 +320,7 @@ function endFunction(lose) {
       const loseAudio = new Audio("./loss.wav");
       loseAudio.volume = 0.2; // Set volume to 50%
       loseAudio.play();
-      if (score >= 0 && score < 5) {
-        const newSize = Math.floor(Math.random() * 5 + 5);
-        map = ranMap(newSize, newSize);
-      } else if (score >= 5 && score < 10) {
-        const newSize = Math.floor(Math.random() * 4 + 8);
-        map = ranMap(newSize, newSize);
-      } else if (score >= 10 && score < 15) {
-        const newSize = Math.floor(Math.random() * 10 + 10);
-        map = ranMap(newSize, newSize);
-      } else if (score >= 15 && score < 20) {
-        const newSize = Math.floor(Math.random() * 16 + 16);
-        map = ranMap(newSize, newSize);
-      } else {
-        const newSize = Math.floor(Math.random() * 15 + 55);
-        map = ranMap(newSize, newSize);
-      }
+      getMapSize();
     } else {
       clearInterval(scoreInterval);
     }
@@ -388,24 +396,7 @@ function collisionDetection() {
           const audio = new Audio("./point.wav");
           audio.volume = 0.15; // Set volume to 50%
           audio.play();
-          if (score >= 0 && score < 5) {
-            const newSize = Math.floor(Math.random() * 5 + 5);
-            map = ranMap(newSize, newSize);
-          } else if (score >= 5 && score < 10) {
-            const newSize = Math.floor(Math.random() * 4 + 8);
-            map = ranMap(newSize, newSize);
-          } else if (score >= 10 && score < 15) {
-            const newSize = Math.floor(Math.random() * 10 + 10);
-            map = ranMap(newSize, newSize);
-          } else if (score >= 15 && score < 20) {
-            const newSize = Math.floor(Math.random() * 16 + 16);
-            map = ranMap(newSize, newSize);
-          } else if (score >= 30) {
-            confirm("Congrats! Want to restart?") ? endFunction(false) : null;
-          } else {
-            const newSize = Math.floor(Math.random() * 15 + 55);
-            map = ranMap(newSize, newSize);
-          }
+          getMapSize();
         }
       } else if (platform === 3) {
         if (
@@ -627,22 +618,7 @@ document.addEventListener("keydown", (e) => {
         const audio = new Audio("./loss.wav");
         audio.volume = 0.2; // Set volume to 50%
         audio.play();
-        if (score >= 0 && score < 5) {
-          const newSize = Math.floor(Math.random() * 5 + 5);
-          map = ranMap(newSize, newSize);
-        } else if (score >= 5 && score < 10) {
-          const newSize = Math.floor(Math.random() * 7 + 8);
-          map = ranMap(newSize, newSize);
-        } else if (score >= 10 && score < 15) {
-          const newSize = Math.floor(Math.random() * 10 + 10);
-          map = ranMap(newSize, newSize);
-        } else if (score >= 15 && score < 20) {
-          const newSize = Math.floor(Math.random() * 16 + 16);
-          map = ranMap(newSize, newSize);
-        } else {
-          const newSize = Math.floor(Math.random() * 15 + 55);
-          map = ranMap(newSize, newSize);
-        }
+        getMapSize();
         canGenMap = false;
       }
       break;
