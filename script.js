@@ -263,10 +263,12 @@ function getMapSize() {
     map = ranMap(newSize, newSize);
   } else if (score >= 30) {
     alert("Congrats! Have fun doing it again");
-    wins++;
-    highScore = 0;
-    localStorage.setItem("highScore", highScore);
-    localStorage.setItem("wins", wins);
+    setTimeout(() => {
+      wins++;
+      highScore = 0;
+      localStorage.setItem("highScore", highScore);
+      localStorage.setItem("wins", wins);
+    }, 5800);
     endFunction(false);
   } else {
     const newSize = Math.floor(Math.random() * 5 + 35);
@@ -332,15 +334,6 @@ function drawMap() {
           blockHeight + 1
         );
       }
-      // else {
-      //   ctx.fillStyle = "rgb(203, 203, 255)";
-      //   ctx.fillRect(
-      //     j * blockWidth,
-      //     i * blockHeight,
-      //     blockWidth + 1,
-      //     blockHeight + 1
-      //   );
-      // }
     }
   }
   // Draw the score counter
@@ -375,17 +368,22 @@ function endFunction(lose) {
   clearInterval(intervalLeft);
   clearInterval(intervalRight);
   const prevScore = score;
-  const scoreInterval = setInterval(() => {
-    if (lose ? score > prevScore - 2 : score > 0) {
-      score--;
-      const loseAudio = new Audio("./loss.wav");
-      loseAudio.volume = 0.2; // Set volume to 50%
-      loseAudio.play();
-      getMapSize();
-    } else {
-      clearInterval(scoreInterval);
-    }
-  }, 180);
+  let i = 0;
+  const scoreInterval = setInterval(
+    () => {
+      if (lose ? score > prevScore - 2 : score > 0) {
+        score--;
+        i++;
+        const loseAudio = new Audio("./loss.wav");
+        loseAudio.volume = 0.2; // Set volume to 50%
+        loseAudio.play();
+        getMapSize();
+      } else {
+        clearInterval(scoreInterval);
+      }
+    },
+    lose ? 180 : 120
+  );
 }
 
 //* Function to detect collision between player and platform and handle it
