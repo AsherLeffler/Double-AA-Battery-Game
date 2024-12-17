@@ -230,7 +230,7 @@ function dangerProb() {
   if (score < 20) {
     return 0.032;
   }
-  return 0.033;
+  return 0.04;
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
