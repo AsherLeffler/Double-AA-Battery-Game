@@ -14,28 +14,6 @@ window.addEventListener("resize", () => {
   canvas.height = screenWidth > screenHeight ? screenHeight : screenWidth;
 });
 
-//* Create the main soundtrack
-// window.addEventListener("DOMContentLoaded", () => {
-//   const mainSoundtrack = new Audio("./soundTrack.mp3");
-//   let soundTrackCanPlay = true;
-//   mainSoundtrack.volume = 0.03; // Set volume to 10%
-//   mainSoundtrack.loop = true;
-
-//   document.addEventListener("keydown", (e) => {
-//     if (
-//       e.key === "ArrowUp" ||
-//       e.key === "w" ||
-//       e.key === "ArrowLeft" ||
-//       e.key === "a" ||
-//       e.key === "ArrowRight" ||
-//       (e.key === "d" && soundTrackCanPlay)
-//     ) {
-//       mainSoundtrack.play();
-//       soundTrackCanPlay = false;
-//     }
-//   });
-// });
-
 //* Variable to check if the player can jump
 let canJump = true;
 let canMove = true;
@@ -120,7 +98,7 @@ class Player {
     this.yPos = yPos;
   }
 
-  //* Draw the player
+  //* Update and draw the player
   update() {
     this.w = canvas.width / map[0].length / 2;
     this.h = canvas.height / map.length / 2;
@@ -310,6 +288,7 @@ function drawMap() {
           blockHeight + 1
         );
       } else if (map[i][j] === 2) {
+        // If platform collided with is 
         ctx.fillStyle = "rgb(0, 243, 12)";
         ctx.fillRect(
           j * blockWidth,
@@ -336,7 +315,7 @@ function drawMap() {
       }
     }
   }
-  // Draw the score counter
+  // Draw the score text, wins text, and high score text
   ctx.fillStyle = "white";
   const fontSize = blockHeight > 40 ? 40 : blockHeight;
   ctx.font = `${fontSize}px Trebuchet MS`;
@@ -368,12 +347,12 @@ function endFunction(lose) {
   clearInterval(intervalLeft);
   clearInterval(intervalRight);
   const prevScore = score;
-  let i = 0;
+
+  // Decrease the score based on whether the player touched lava or won
   const scoreInterval = setInterval(
     () => {
       if (lose ? score > prevScore - 2 : score > 0) {
         score--;
-        i++;
         const loseAudio = new Audio("./loss.wav");
         loseAudio.volume = 0.2; // Set volume to 50%
         loseAudio.play();
@@ -382,6 +361,7 @@ function endFunction(lose) {
         clearInterval(scoreInterval);
       }
     },
+    // If the player has lost, it will decrease at 0.18 seconds, otherwise it will decrease at 0.12 seconds
     lose ? 180 : 120
   );
 }
