@@ -48,6 +48,9 @@ const colors = ["rgba(48, 48, 48, 0.35)", "rgba(48, 48, 48, 0.8)"];
 
 setInterval(() => {
   colorIndex = (colorIndex + 1) % colors.length;
+  const switchAudio = new Audio("./switch.wav");
+  switchAudio.volume = 0.1; // Set volume to 50%
+  switchAudio.play();
 }, 3000);
 
 //* Start working with canvas
@@ -275,6 +278,9 @@ function endFunction(lose) {
   const scoreInterval = setInterval(() => {
     if (lose ? score > prevScore - 2 : score > 0) {
       score--;
+      const loseAudio = new Audio("./loss.wav");
+      loseAudio.volume = 0.2; // Set volume to 50%
+      loseAudio.play();
       if (score >= 0 && score < 5) {
         const newSize = Math.floor(Math.random() * 5 + 5);
         map = ranMap(newSize, newSize);
@@ -362,7 +368,7 @@ function collisionDetection() {
           // Generate a new map
           score++;
           const audio = new Audio("./point.wav");
-          audio.volume = 0.2; // Set volume to 50%
+          audio.volume = 0.15; // Set volume to 50%
           audio.play();
           if (score >= 0 && score < 5) {
             const newSize = Math.floor(Math.random() * 5 + 5);
@@ -390,6 +396,9 @@ function collisionDetection() {
           mainPlayer.yPos < i * blockHeight + blockHeight &&
           mainPlayer.yPos + mainPlayer.h > i * blockHeight
         ) {
+          const burnAudio = new Audio("./burn.wav");
+          burnAudio.volume = 0.1; // Set volume to 50%
+          burnAudio.play();
           endFunction(true);
         }
       } else if (platform === 4) {
