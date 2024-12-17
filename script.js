@@ -271,9 +271,18 @@ function drawMap() {
   ctx.fillStyle = "white";
   const fontSize = blockHeight > 60 ? 60 : blockHeight;
   ctx.font = `${fontSize}px Trebuchet MS`;
-  ctx.textAlign = "center";
-  ctx.fillText(`Score: ${score}`, canvas.width / 3 - 20, canvas.height - 10);
-  ctx.fillText(`Best: ${highScore}`, canvas.width / 3 * 2 + 20, canvas.height - 10);
+  ctx.textAlign = "left";
+  ctx.fillText(
+    `Score: ${score}`,
+    20,
+    canvas.height - canvas.height / map.length / 8
+  );
+  ctx.textAlign = "right";
+  ctx.fillText(
+    `Best: ${highScore}`,
+    canvas.width - 20,
+    canvas.height - canvas.height / map.length / 8
+  );
 }
 
 //* Function to end the game
