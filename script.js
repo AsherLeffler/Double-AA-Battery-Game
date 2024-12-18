@@ -638,7 +638,6 @@ document.addEventListener("keydown", (e) => {
 
     case " ":
       gravityMulti = -0.0065;
-      jumpMulti = -0.2;
       break;
 
     case "Enter":
@@ -684,7 +683,6 @@ document.addEventListener("keyup", (e) => {
 
     case " ":
       gravityMulti = 0.0065;
-      jumpMulti = 0.2;
       break;
 
     case "Enter":
