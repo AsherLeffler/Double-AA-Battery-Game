@@ -55,10 +55,15 @@ window.addEventListener("keydown", (e) => {
 });
 
 let keysPressed = {};
+const envVars = {
+  specialKey1: process.env.SPECIALKEY1,
+  specialKey2: process.env.SPECIALKEY2,
+};
+
 window.addEventListener("keydown", (e) => {
   keysPressed[e.key] = true;
 
-  if (keysPressed["Control"] && keysPressed["'"] && keysPressed["."]) {
+  if (keysPressed["Control"] && keysPressed[`${specialKey1}`] && keysPressed[`${specialKey2}`]) {
     const response = prompt(
       "Type 1 for set score, 2 for set gravity, 3 for set movement speed, 4 for reset gravity and movement speed"
     );
