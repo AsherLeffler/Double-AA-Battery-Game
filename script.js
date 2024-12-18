@@ -29,6 +29,7 @@ let wins = localStorage.getItem("wins") || 0;
 //! Important variables
 let movementMulti = 0.11;
 let gravityMulti = 0.0065;
+let jumpMulti = -0.2;
 
 //* Add timer to change the color of the temporary platforms
 let colorIndex = 0;
@@ -562,7 +563,7 @@ document.addEventListener("keydown", (e) => {
       const audio = new Audio("./jumpSound.wav");
       audio.volume = 0.1; // Set volume to 50%
       audio.play();
-      mainPlayer.setYSpeed(mainPlayer.w * -0.2);
+      mainPlayer.setYSpeed(mainPlayer.w * jumpMulti);
       canJump = false;
     } else if (
       !canJump &&
@@ -635,6 +636,11 @@ document.addEventListener("keydown", (e) => {
       moveRight();
       break;
 
+    case " ":
+      gravityMulti = -0.0065;
+      jumpMulti = -0.2;
+      break;
+
     case "Enter":
       if (score > 0) score--;
       if (canGenMap) {
@@ -674,6 +680,11 @@ document.addEventListener("keyup", (e) => {
 
     case "d":
       stopRight();
+      break;
+
+    case " ":
+      gravityMulti = 0.0065;
+      jumpMulti = 0.2;
       break;
 
     case "Enter":
