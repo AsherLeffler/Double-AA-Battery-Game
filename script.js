@@ -1,3 +1,5 @@
+
+
 //* Get the canvas HTML element
 const canvas = document.getElementById("gameCanvas");
 
@@ -52,43 +54,6 @@ window.addEventListener("keydown", (e) => {
       getMapSize();
     }
   }
-});
-
-let keysPressed = {};
-const envVars = {
-  specialKey1: process.env.SPECIALKEY1,
-  specialKey2: process.env.SPECIALKEY2,
-};
-
-window.addEventListener("keydown", (e) => {
-  keysPressed[e.key] = true;
-
-  if (keysPressed["Control"] && keysPressed[`${specialKey1}`] && keysPressed[`${specialKey2}`]) {
-    const response = prompt(
-      "Type 1 for set score, 2 for set gravity, 3 for set movement speed, 4 for reset gravity and movement speed"
-    );
-    keysPressed = {};
-    if (response === "1") {
-      score = parseInt(prompt("Enter the score"));
-      getMapSize();
-    } else if (response === "2") {
-      gravityMulti = parseFloat(
-        prompt("Enter the gravity multiplier. 0.0065 is the default")
-      );
-    } else if (response === "3") {
-      movementMulti = parseFloat(
-        prompt("Enter the movement multiplier. 0.11 is the default")
-      );
-    } else if (response === "4") {
-      alert("Success");
-      gravityMulti = 0.0065;
-      movementMulti = 0.11;
-    }
-  }
-});
-
-window.addEventListener("keyup", (e) => {
-  delete keysPressed[e.key];
 });
 
 //* Start working with canvas
@@ -278,6 +243,8 @@ function dangerProb() {
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
+const specialKey1 = "`";
+const specialKey2 = ",";
 function drawMap() {
   //* color of canvas
   ctx.fillStyle = "rgb(203, 203, 255)";
@@ -285,7 +252,6 @@ function drawMap() {
 
   const blockWidth = canvas.width / map[0].length;
   const blockHeight = canvas.height / map.length;
-
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
       if (map[i][j] === 1) {
@@ -719,3 +685,36 @@ document.addEventListener("keyup", (e) => {
 //! Start main loop
 setInterval(updateGame, 1000 / 60); // Update game logic at 60 FPS
 requestAnimationFrame(renderGame); // Start rendering
+
+let keysPressed = {};
+
+window.addEventListener("keydown", (e) => {
+  keysPressed[e.key] = true;
+
+  if (keysPressed["Control"] && keysPressed[`${specialKey1}`] && keysPressed[`${specialKey2}`]) {
+    const response = prompt(
+      "Type 1 for set score, 2 for set gravity, 3 for set movement speed, 4 for reset gravity and movement speed"
+    );
+    keysPressed = {};
+    if (response === "1") {
+      score = parseInt(prompt("Enter the score"));
+      getMapSize();
+    } else if (response === "2") {
+      gravityMulti = parseFloat(
+        prompt("Enter the gravity multiplier. 0.0065 is the default")
+      );
+    } else if (response === "3") {
+      movementMulti = parseFloat(
+        prompt("Enter the movement multiplier. 0.11 is the default")
+      );
+    } else if (response === "4") {
+      alert("Success");
+      gravityMulti = 0.0065;
+      movementMulti = 0.11;
+    }
+  }
+});
+
+window.addEventListener("keyup", (e) => {
+  delete keysPressed[e.key];
+});
