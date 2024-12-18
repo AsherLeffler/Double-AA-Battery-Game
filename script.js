@@ -54,13 +54,11 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-//* Press ctrl + q + b to access dev menu
 let keysPressed = {};
-// Add event listener to check for key presses to activate the dev menu
 window.addEventListener("keydown", (e) => {
   keysPressed[e.key] = true;
 
-  if (keysPressed["Control"] && keysPressed["b"] && keysPressed["q"]) {
+  if (keysPressed["Control"] && keysPressed["'"] && keysPressed["."]) {
     const response = prompt(
       "Type 1 for set score, 2 for set gravity, 3 for set movement speed, 4 for reset gravity and movement speed"
     );
