@@ -238,9 +238,9 @@ function dangerProb() {
     return 0.028;
   }
   if (score < 20) {
-    return 0.032;
+    return 0.04;
   }
-  return 0.04;
+  return 0.05;
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
@@ -636,9 +636,9 @@ document.addEventListener("keydown", (e) => {
       moveRight();
       break;
 
-    case " ":
-      gravityMulti = -0.0065;
-      break;
+    // case " ":
+    //   gravityMulti = -0.0065;
+    //   break;
 
     case "Enter":
       if (score > 0) score--;
@@ -681,9 +681,9 @@ document.addEventListener("keyup", (e) => {
       stopRight();
       break;
 
-    case " ":
-      gravityMulti = 0.0065;
-      break;
+    // case " ":
+    //   gravityMulti = 0.0065;
+    //   break;
 
     case "Enter":
       canGenMap = true;
