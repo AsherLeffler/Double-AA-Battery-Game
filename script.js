@@ -1,5 +1,3 @@
-
-
 //* Get the canvas HTML element
 const canvas = document.getElementById("gameCanvas");
 
@@ -157,11 +155,15 @@ function ranMap(width, height) {
           map[i].push(0);
         } else {
           // Not adjacent to a 2: use ranNum()
-          map[i].push(ranNum(i, height));
+          map[i].push(ranNum(i, height, map));
         }
       }
     }
   }
+
+  // After generating the map, ensure all teleport platforms have pairs
+  ensurePortalPairs(map, height);
+
   // Resets the player's position, size, and speed to be at the bottom of the canvas and proportional with the map
   mainPlayer.w = canvas.width / map[0].length / 2;
   mainPlayer.h = canvas.height / map.length / 2;
@@ -180,22 +182,173 @@ function ranMap(width, height) {
   return map;
 }
 
+//* Function to ensure all teleport platforms have pairs
+function ensurePortalPairs(map, height) {
+  // Only spawn portals if score >= 8
+  if (score < 8) {
+    // Remove any portals if present
+    for (let i = 0; i < map.length; i++) {
+      for (let j = 0; j < map[i].length; j++) {
+        if (
+          map[i][j] === 5 ||
+          map[i][j] === 6 ||
+          map[i][j] === 7 ||
+          map[i][j] === 8
+        ) {
+          map[i][j] = 0;
+        }
+      }
+    }
+    return;
+  }
+
+  // For 8 <= score < 15: ensure exactly one pair (5 and 6)
+  if (score >= 8 && score < 15) {
+    let pos5 = null,
+      pos6 = null;
+    for (let i = 0; i < map.length; i++) {
+      for (let j = 0; j < map[i].length; j++) {
+        if (map[i][j] === 5) pos5 = [i, j];
+        if (map[i][j] === 6) pos6 = [i, j];
+        // Remove any extra portals
+        if (map[i][j] === 7 || map[i][j] === 8) map[i][j] = 0;
+      }
+    }
+    // If both are missing, forcibly place them
+    if (!pos5) pos5 = forcePlacePortal(map, 5, height);
+    if (!pos6) pos6 = forcePlacePortal(map, 6, height, [pos5]);
+    // If both exist, nothing to do
+  }
+
+  // For score >= 15: ensure two pairs (5-6 and 7-8)
+  if (score >= 15) {
+    let pos5 = null,
+      pos6 = null,
+      pos7 = null,
+      pos8 = null;
+    for (let i = 0; i < map.length; i++) {
+      for (let j = 0; j < map[i].length; j++) {
+        if (map[i][j] === 5) pos5 = [i, j];
+        if (map[i][j] === 6) pos6 = [i, j];
+        if (map[i][j] === 7) pos7 = [i, j];
+        if (map[i][j] === 8) pos8 = [i, j];
+      }
+    }
+    if (!pos5) pos5 = forcePlacePortal(map, 5, height);
+    if (!pos6) pos6 = forcePlacePortal(map, 6, height, [pos5, pos7, pos8]);
+    if (!pos7) pos7 = forcePlacePortal(map, 7, height, [pos5, pos6, pos8]);
+    if (!pos8) pos8 = forcePlacePortal(map, 8, height, [pos5, pos6, pos7]);
+  }
+}
+
+// Helper to forcibly place a portal, avoiding goal and bottom rows, and optionally avoiding other portals
+function forcePlacePortal(map, portalType, height, avoidList = []) {
+  // Try to find an empty spot not in avoidList
+  for (let i = 1; i < map.length - 2; i++) {
+    for (let j = 0; j < map[0].length; j++) {
+      let avoid = false;
+      for (const pos of avoidList) {
+        if (pos && pos[0] === i && pos[1] === j) avoid = true;
+      }
+      if (!avoid && map[i][j] !== 2) {
+        map[i][j] = portalType;
+        return [i, j];
+      }
+    }
+  }
+  // If no empty spot, override any non-goal, non-bottom-row tile
+  for (let i = 1; i < map.length - 2; i++) {
+    for (let j = 0; j < map[0].length; j++) {
+      let avoid = false;
+      for (const pos of avoidList) {
+        if (pos && pos[0] === i && pos[1] === j) avoid = true;
+      }
+      if (!avoid && map[i][j] !== 2) {
+        map[i][j] = portalType;
+        return [i, j];
+      }
+    }
+  }
+  // As a last resort, just place it anywhere not on the goal
+  for (let i = 0; i < map.length; i++) {
+    for (let j = 0; j < map[0].length; j++) {
+      let avoid = false;
+      for (const pos of avoidList) {
+        if (pos && pos[0] === i && pos[1] === j) avoid = true;
+      }
+      if (!avoid && map[i][j] !== 2) {
+        map[i][j] = portalType;
+        return [i, j];
+      }
+    }
+  }
+  return null;
+}
+
 //* Function to generate a random number
-function ranNum(row, height) {
+function ranNum(row, height, map) {
   const dF = dangerProb(); // The frequency of danger platforms.
   const tF = 0.05; // The frequency of temporary platforms.
-  const sF = score < 15 ? 0.3 - dF - tF : 0.34 - dF - tF; // The frequency of safe platforms.
+  const teleF = score < 8 ? 0 : 0.02; // The frequency of teleport platforms - none before score 8
+  const sF = score < 15 ? 0.3 - dF - tF - teleF : 0.34 - dF - tF - teleF; // The frequency of safe platforms.
   const num = Math.random();
+
+  // Check if we already have teleport platforms in the map
+  let hasTeleport5 = false;
+  let hasTeleport6 = false;
+  let hasTeleport7 = false;
+  let hasTeleport8 = false;
+
+  for (let i = 0; i < map.length; i++) {
+    for (let j = 0; j < map[i].length; j++) {
+      if (map[i][j] === 5) hasTeleport5 = true;
+      if (map[i][j] === 6) hasTeleport6 = true;
+      if (map[i][j] === 7) hasTeleport7 = true;
+      if (map[i][j] === 8) hasTeleport8 = true;
+    }
+  }
 
   // Return the value of the platform based on the random number
   if (num < sF) {
-    return 1; // Safe platform;
+    return 1; // Safe platform
   }
   if (num < sF + dF && row < height - 4) {
-    return 3; // Danger platform;
+    return 3; // Danger platform
   }
   if (num < sF + dF + tF && score > 3) {
-    return 4; // Temporary platform;
+    return 4; // Temporary platform
+  }
+  if (num < sF + dF + tF + teleF && row < height - 4) {
+    // Add teleport platforms based on score and existing platforms
+    if (score >= 8 && score < 15) {
+      // One set of teleport platforms (5-6)
+      if (!hasTeleport5 && !hasTeleport6) {
+        return 5; // First teleport platform
+      } else if (hasTeleport5 && !hasTeleport6) {
+        return 6; // Second teleport platform (pair)
+      }
+    } else if (score >= 15) {
+      // Two sets of teleport platforms (5-6 and 7-8)
+      if (!hasTeleport5 && !hasTeleport6) {
+        return 5; // First teleport platform set 1
+      } else if (hasTeleport5 && !hasTeleport6) {
+        return 6; // Second teleport platform set 1
+      } else if (
+        hasTeleport5 &&
+        hasTeleport6 &&
+        !hasTeleport7 &&
+        !hasTeleport8
+      ) {
+        return 7; // First teleport platform set 2
+      } else if (
+        hasTeleport5 &&
+        hasTeleport6 &&
+        hasTeleport7 &&
+        !hasTeleport8
+      ) {
+        return 8; // Second teleport platform set 2
+      }
+    }
   }
   return 0;
 }
@@ -244,8 +397,6 @@ function dangerProb() {
 }
 
 //* Function to draw the map, it loops through the map array and draws the tile based on what the value is
-const specialKey1 = "`";
-const specialKey2 = ",";
 function drawMap() {
   //* color of canvas
   ctx.fillStyle = "rgb(203, 203, 255)";
@@ -281,6 +432,22 @@ function drawMap() {
         );
       } else if (map[i][j] === 4) {
         ctx.fillStyle = colors[colorIndex]; // Color of temporary platform (changes every 3 seconds);
+        ctx.fillRect(
+          j * blockWidth,
+          i * blockHeight,
+          blockWidth + 1,
+          blockHeight + 1
+        );
+      } else if (map[i][j] === 5 || map[i][j] === 7) {
+        ctx.fillStyle = `rgb(0, ${Math.floor(Math.random() * 50 + 120)}, 255)`; // Color of teleport platform;
+        ctx.fillRect(
+          j * blockWidth,
+          i * blockHeight,
+          blockWidth + 1,
+          blockHeight + 1
+        );
+      } else if (map[i][j] === 6 || map[i][j] === 8) {
+        ctx.fillStyle = `rgb(255, ${Math.floor(Math.random() * 50 + 200)}, 0)`; // Color of second teleport platform (yellow);
         ctx.fillRect(
           j * blockWidth,
           i * blockHeight,
@@ -345,10 +512,16 @@ function endFunction(lose) {
   );
 }
 
+let lastTeleportTime = 0;
+
 //* Function to detect collision between player and platform and handle it
 function collisionDetection() {
   const blockWidth = canvas.width / map[0].length;
   const blockHeight = canvas.height / map.length;
+
+  // Add teleport cooldown to prevent rapid teleporting
+  const teleportCooldown = 1000; // ms
+  const currentTime = Date.now();
 
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
@@ -477,6 +650,58 @@ function collisionDetection() {
               mainPlayer.yPos = platformY + platformHeight; // Colliding from below
               mainPlayer.ySpeed = 0.1;
             }
+          }
+        }
+      } else if (
+        (platform === 5 ||
+          platform === 6 ||
+          platform === 7 ||
+          platform === 8) &&
+        currentTime - lastTeleportTime > teleportCooldown
+      ) {
+        // Check if the player is touching a teleport platform
+        if (
+          mainPlayer.xPos < j * blockWidth + blockWidth &&
+          mainPlayer.xPos + mainPlayer.w > j * blockWidth &&
+          mainPlayer.yPos < i * blockHeight + blockHeight &&
+          mainPlayer.yPos + mainPlayer.h > i * blockHeight
+        ) {
+          // Find the corresponding teleport platform
+          let targetPlatform;
+          if (platform === 5) targetPlatform = 6;
+          else if (platform === 6) targetPlatform = 5;
+          else if (platform === 7) targetPlatform = 8;
+          else if (platform === 8) targetPlatform = 7;
+
+          // Find the target platform's position
+          let targetX = 0,
+            targetY = 0,
+            found = false;
+
+          for (let ti = 0; ti < map.length && !found; ti++) {
+            for (let tj = 0; tj < map[ti].length && !found; tj++) {
+              if (map[ti][tj] === targetPlatform) {
+                targetX = tj * blockWidth;
+                targetY = ti * blockHeight;
+                found = true;
+              }
+            }
+          }
+
+          if (found) {
+            // Play teleport sound
+            const teleportAudio = new Audio("./switch.wav"); // Reusing switch.wav, you may want a dedicated teleport sound
+            teleportAudio.volume = 0.3;
+            teleportAudio.play();
+
+            // Teleport the player
+            mainPlayer.xPos = targetX + (blockWidth - mainPlayer.w) / 2; // Center on platform horizontally
+            mainPlayer.yPos = targetY - mainPlayer.h; // Place on top of platform
+            mainPlayer.xSpeed = 0;
+            mainPlayer.ySpeed = 0;
+
+            // Set cooldown
+            lastTeleportTime = currentTime;
           }
         }
       }
@@ -696,11 +921,17 @@ setInterval(updateGame, 1000 / 60); // Update game logic at 60 FPS
 requestAnimationFrame(renderGame); // Start rendering
 
 let keysPressed = {};
+const specialKey1 = ",";
+const specialKey2 = "`";
 
 window.addEventListener("keydown", (e) => {
   keysPressed[e.key] = true;
 
-  if (keysPressed["Control"] && keysPressed[`${specialKey1}`] && keysPressed[`${specialKey2}`]) {
+  if (
+    keysPressed["Control"] &&
+    keysPressed[`${specialKey1}`] &&
+    keysPressed[`${specialKey2}`]
+  ) {
     const response = prompt(
       "Type 1 for set score, 2 for set gravity, 3 for set movement speed, 4 for reset gravity and movement speed"
     );
